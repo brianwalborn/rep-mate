@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <h3>{{ content_title }}</h3>
+  <ul>
+    <li><strong>Description:</strong> {{ description }}</li>
+    <li><strong>Muscle Group:</strong> {{ muscle }}</li>
+    <li><strong>Equipment:</strong> {{ equipment }}</li>
+    <li><strong>Date Added:</strong> {{ date_added }}</li>
+  </ul>
+  <form method="post">
+    <a href="/exercises/{{ id }}/edit" class="btn btn-outline-primary">Edit</a>
+    <input type="submit" class="btn btn-outline-danger" value="Delete">
+  </form>
+{% endblock %}

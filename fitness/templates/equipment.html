@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <h3>{{ content_title }}</h3>
+  <ul>
+    {% for item in equipment %}
+      <li><a href="/equipment/{{ item.id }}">{{ item.name }}</a></li>
+    {% endfor %}
+  </ul>
+  <a href="/equipment/new" class="btn btn-outline-primary">Add Equipment</a>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <h3>{{ content_title }}</h3>
+  <ul>
+    {% for workout in workouts %}
+      <li><a href="/workouts/{{ workout.id }}">{{ workout.date_added }}</a></li>
+    {% endfor %}
+  </ul>
+  <a href="/workouts/new/{{ new_workout_id }}" class="btn btn-outline-primary">Start Workout</a>
+{% endblock %}
