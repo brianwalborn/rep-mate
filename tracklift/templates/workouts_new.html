@@ -7,7 +7,7 @@
       <div class="input-group mt-3 mb-1">
         <select class="form-select" disabled>
           {% for exercise in exercises %}
-            {% if workout_exercise.exercise.id == exercise.id %}
+            {% if workout_exercise.exercise_id == exercise.id %}
               <option value="{{ exercise.id }}" selected>{{ exercise.name }}</option>
             {% else %}
               <option value="{{ exercise.id }}">{{ exercise.name }}</option>
@@ -18,7 +18,7 @@
       </div>
     </form>
     {% for set in sets %}
-      {% if set.workout.id == workout_exercise.id %}
+      {% if set.workout_exercise_id == workout_exercise.id %}
         <form method="post" style="margin-left: 2rem">
           <div class="input-group">
             <span class="input-group-text">Repetitions x Weight</span>

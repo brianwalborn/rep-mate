@@ -7,7 +7,7 @@
     <input class="form-control" type="text" name="description" placeholder="Description" value="{{ exercise.description }}">
     <select class="form-select" name="muscle">
       {% for muscle in muscles %}
-        {% if exercise.muscle.id == muscle.id %}
+        {% if exercise.muscle_id == muscle.id %}
           <option value="{{ muscle.id }}" selected>{{ muscle.name }}</option>
         {% else %}
           <option value="{{ muscle.id }}">{{ muscle.name }}</option>
@@ -16,7 +16,7 @@
     </select>
     <select class="form-select" name="equipment">
       {% for item in equipment %}
-        {% if exercise.equipment.id == item.id %}
+        {% if exercise.equipment_id == item.id %}
           <option value="{{ item.id }}" selected>{{ item.name }}</option>
         {% else %}
           <option value="{{ item.id }}">{{ item.name }}</option>

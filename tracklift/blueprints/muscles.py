@@ -1,16 +1,12 @@
-from fitness.database.database import get_connection
-from fitness.models.muscle import Muscle
 from flask import Blueprint, redirect, render_template, request
+from tracklift.models.muscle import Muscle
 
 bp = Blueprint('muscles', __name__)
 
 @bp.route('/muscles/<uuid:id>/edit', methods = ['GET', 'POST'])
 def edit_muscle(id):
   if request.method.upper() == 'GET':
-    database = get_connection()
-    response = database.execute(f"SELECT * FROM muscles WHERE id = '{id}'").fetchone()
-
-    muscle = Muscle(response)
+    muscle = Muscle(id = id).get()
 
     return render_template(
       'muscles_edit.html',
@@ -21,9 +17,7 @@ def edit_muscle(id):
     try:
       name = request.form['name']
 
-      database = get_connection()
-      database.execute(f"UPDATE muscles SET name = '{name}' WHERE id = '{id}'")
-      database.commit()
+      Muscle(id = id, name = name).update()
     except Exception as e:
       print(e)
     finally:
@@ -31,12 +25,7 @@ def edit_muscle(id):
 
 @bp.route('/muscles')
 def list_muscles():
-  muscles: list[Muscle] = []
-  database = get_connection()
-  response = database.execute('SELECT * FROM muscles').fetchall()
-
-  for row in response:
-    muscles.append(Muscle(row))
+  muscles = Muscle().get_all()
 
   return render_template(
     'muscles.html',
@@ -55,9 +44,7 @@ def add_muscle():
     try:
       name = request.form['name']
 
-      database = get_connection()
-      database.execute(f"INSERT INTO muscles (name) VALUES ('{name}')")
-      database.commit()
+      Muscle(name = name).add()
     except Exception as e:
       print(e)
     finally:
@@ -66,10 +53,7 @@ def add_muscle():
 @bp.route('/muscles/<uuid:id>', methods = ['GET', 'POST'])
 def view_muscle(id):
   if request.method.upper() == 'GET':
-    database = get_connection()
-    response = database.execute(f"SELECT * FROM muscles WHERE id = '{id}'").fetchone()
-
-    muscle = Muscle(response)
+    muscle = Muscle(id = id).get()
 
     return render_template(
       'muscles_view.html',
@@ -78,9 +62,7 @@ def view_muscle(id):
     )
   elif request.method.upper() == 'POST':
     try:
-      database = get_connection()
-      database.execute(f"DELETE FROM muscles WHERE id = '{id}'")
-      database.commit()
+      Muscle(id = id).delete()
     except Exception as e:
       print(e)
     finally:

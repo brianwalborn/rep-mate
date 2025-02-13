@@ -1,16 +1,12 @@
-from fitness.database.database import get_connection
-from fitness.models.equipment import Equipment
 from flask import Blueprint, redirect, render_template, request
+from tracklift.models.equipment import Equipment
 
 bp = Blueprint('equipment', __name__)
 
 @bp.route('/equipment/<uuid:id>/edit', methods = ['GET', 'POST'])
 def edit_equipment(id):
   if request.method.upper() == 'GET':
-    database = get_connection()
-    response = database.execute(f"SELECT * FROM equipment WHERE id = '{id}'").fetchone()
-
-    equipment = Equipment(response)
+    equipment = Equipment(id = id).get()
 
     return render_template(
       'equipment_edit.html',
@@ -21,9 +17,7 @@ def edit_equipment(id):
     try:
       name = request.form['name']
 
-      database = get_connection()
-      database.execute(f"UPDATE equipment SET name = '{name}' WHERE id = '{id}'")
-      database.commit()
+      Equipment(id = id, name = name).update()
     except Exception as e:
       print(e)
     finally:
@@ -31,12 +25,7 @@ def edit_equipment(id):
 
 @bp.route('/equipment')
 def list_equipment():
-  equipment: list[Equipment] = []
-  database = get_connection()
-  response = database.execute('SELECT * FROM equipment').fetchall()
-
-  for row in response:
-    equipment.append(Equipment(row))
+  equipment = Equipment().get_all()
 
   return render_template(
     'equipment.html',
@@ -55,9 +44,7 @@ def add_equipment():
     try:
       name = request.form['name']
 
-      database = get_connection()
-      database.execute(f"INSERT INTO equipment (name) VALUES ('{name}')")
-      database.commit()
+      Equipment(name = name).add()
     except Exception as e:
       print(e)
     finally:
@@ -66,10 +53,7 @@ def add_equipment():
 @bp.route('/equipment/<uuid:id>', methods = ['GET', 'POST'])
 def view_equipment(id):
   if request.method.upper() == 'GET':
-    database = get_connection()
-    response = database.execute(f"SELECT * FROM equipment WHERE id = '{id}'").fetchone()
-
-    equipment = Equipment(response)
+    equipment = Equipment(id = id).get()
 
     return render_template(
       'equipment_view.html',
@@ -78,9 +62,7 @@ def view_equipment(id):
     )
   elif request.method.upper() == 'POST':
     try:
-      database = get_connection()
-      database.execute(f"DELETE FROM equipment WHERE id = '{id}'")
-      database.commit()
+      Equipment(id = id).delete()
     except Exception as e:
       print(e)
     finally:
