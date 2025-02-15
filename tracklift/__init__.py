@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
 from tracklift.blueprints import base, equipment, exercises, muscles, workouts
@@ -7,9 +8,11 @@ import os
 def create_app(test_config = None):
   app = Flask(__name__, instance_relative_config = True)
 
+  load_dotenv()
+
   app.config.from_mapping(
     SECRET_KEY = os.environ.get('SECRET_KEY'),
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg://tracklift:irjcoYW3J8mCzrRjCNop@localhost:5432/tracklift",
+    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg://{os.environ.get('PGUSER')}:{os.environ.get('PGPASSWORD')}@{os.environ.get('PGHOST')}:{os.environ.get('PGPORT', '5432')}/{os.environ.get('PGDATABASE')}",
     SQLALCHEMY_TRACK_MODIFICATIONS = False
   )
 
@@ -18,7 +21,6 @@ def create_app(test_config = None):
 
   database.database.init_app(app)
   Migrate(app, database.database)
-  database.register_commands(app)
 
   app.register_blueprint(base.bp)
   app.register_blueprint(equipment.bp)

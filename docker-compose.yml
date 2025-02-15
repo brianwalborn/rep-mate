@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${PGDATABASE}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_USER: ${PGUSER}
+    restart: always
+    ports:
+      - 5123:5432
+    volumes:
+      - ./pData:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -t 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+
+  trackilft:
+    container_name: tracklift
+    environment:
+      PGDATABASE: ${PGDATABASE}
+      PGHOST: postgres
+      PGPASSWORD: ${PGPASSWORD}
+      PGUSER: ${PGUSER}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
