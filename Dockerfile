@@ -19,7 +19,7 @@ RUN chown -R ${USERNAME}:${USERNAME} ${WORKING_DIR}
 RUN chmod -R u=rwx,g=rwx ${WORKING_DIR}
 
 USER ${USERNAME}
-ENV PATH "$PATH:/home/${USERNAME}/.local/bin"
+ENV PATH="$PATH:/home/${USERNAME}/.local/bin"
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
