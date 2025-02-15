@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Date, ForeignKeyConstraint, String, UUID, text
+from sqlalchemy import Column, DateTime, ForeignKeyConstraint, String, UUID, text
 from tracklift.database.database import database
 from tracklift.models.exercise import Exercise
 from tracklift.models.workout import Workout
@@ -6,11 +6,11 @@ from tracklift.models.workout import Workout
 class WorkoutExercise(database.Model):
   __tablename__ = 'workout_exercises'
 
-  id = Column(UUID, default = text('gen_random_uuid()'), primary_key = True)
+  id = Column(UUID, server_default = text('gen_random_uuid()'), primary_key = True)
   workout_id = Column(UUID, nullable = False)
   exercise_id = Column(UUID, nullable = False)
   notes = Column(String)
-  date_added = Column(Date, default = text("TIMEZONE('utc', NOW())"), nullable = False)
+  date_added = Column(DateTime, server_default = text("TIMEZONE('utc', NOW())"), nullable = False)
 
   __table_args__ = (
     ForeignKeyConstraint([workout_id], [Workout.id], ondelete = 'NO ACTION'),

@@ -1,12 +1,12 @@
-from sqlalchemy import Column, Date, String, UUID, text
+from sqlalchemy import Column, DateTime, String, UUID, text
 from tracklift.database.database import database
 
 class Equipment(database.Model):
   __tablename__ = 'equipment'
 
-  id = Column(UUID, default = text('gen_random_uuid()'),  primary_key = True)
+  id = Column(UUID, server_default = text('gen_random_uuid()'),  primary_key = True)
   name = Column(String, unique = True, nullable = False)
-  date_added = Column(Date, default = text("TIMEZONE('utc', NOW())"), nullable = False)
+  date_added = Column(DateTime, server_default = text("TIMEZONE('utc', NOW())"), nullable = False)
 
   def __init__(self, id = None, name = None, date_added = None) -> None:
     self.id: str = id

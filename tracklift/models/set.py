@@ -1,15 +1,15 @@
-from sqlalchemy import Column, Date, ForeignKeyConstraint, Integer, UUID, text
+from sqlalchemy import Column, DateTime, ForeignKeyConstraint, Integer, UUID, text
 from tracklift.database.database import database
 from tracklift.models.workout_exercise import WorkoutExercise
 
 class Set(database.Model):
   __tablename__ = 'sets'
 
-  id = Column(UUID, default = text('gen_random_uuid()'), primary_key = True)
+  id = Column(UUID, server_default = text('gen_random_uuid()'), primary_key = True)
   workout_exercise_id = Column(UUID, nullable = False)
   repetitions = Column(Integer)
   weight = Column(Integer)
-  date_added = Column(Date, default = text("TIMEZONE('utc', NOW())"), nullable = False)
+  date_added = Column(DateTime, server_default = text("TIMEZONE('utc', NOW())"), nullable = False)
 
   __table_args__ = (
     ForeignKeyConstraint([workout_exercise_id], [WorkoutExercise.id], ondelete = 'NO ACTION'),
