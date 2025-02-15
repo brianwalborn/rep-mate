@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
-from tracklift.blueprints import base, equipment, exercises, muscles, workouts
-from tracklift.database import database
+from repmate.blueprints import base, equipment, exercises, muscles, workouts
+from repmate.database import database
 import os
 
 def create_app(test_config = None):

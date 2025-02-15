@@ -1,5 +1,5 @@
 from sqlalchemy import Column, DateTime, String, UUID, text
-from tracklift.database.database import database
+from repmate.database.database import database
 
 class Muscle(database.Model):
   __tablename__ = 'muscles'

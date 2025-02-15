@@ -18,8 +18,8 @@ services:
       retries: 10
       start_period: 10s
 
-  trackilft:
-    container_name: tracklift
+  repmate:
+    container_name: repmate
     environment:
       PGDATABASE: ${PGDATABASE}
       PGHOST: postgres

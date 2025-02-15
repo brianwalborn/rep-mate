@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, request
-from tracklift.models.muscle import Muscle
+from repmate.models.muscle import Muscle
 
 bp = Blueprint('muscles', __name__)
 

@@ -2,13 +2,13 @@ FROM python:3.13-slim
 
 RUN apt-get -q -y update
 
-ENV USERNAME=tracklift
-ENV WORKING_DIR=/home/tracklift
+ENV USERNAME=repmate
+ENV WORKING_DIR=/home/repmate
 
 WORKDIR ${WORKING_DIR}
 
 COPY migrations migrations
-COPY tracklift tracklift
+COPY repmate repmate
 COPY requirements.txt .
 COPY entrypoint.sh .
 
@@ -24,7 +24,7 @@ ENV PATH "$PATH:/home/${USERNAME}/.local/bin"
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-ENV FLASK_APP=tracklift
+ENV FLASK_APP=repmate
 RUN chmod +x entrypoint.sh
 
 EXPOSE 5000

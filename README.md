@@ -1,4 +1,4 @@
-# tracklift
+# repmate
 
 A self-hosted fitness application that tracks workouts.
 
@@ -15,7 +15,7 @@ A self-hosted fitness application that tracks workouts.
 #### Set Up
 
 ```sh
-# from the root of the tracklift project
+# from the root of the repmate project
 $ docker-compose up --build
 # navigate to http://localhost:8000
 ```
@@ -25,12 +25,12 @@ $ docker-compose up --build
 #### Prerequisites
 
 - Python >= 3.13
-- PostgreSQL running locally with a `tracklift` database and `tracklift` user
+- PostgreSQL running locally with a `repmate` database and `repmate` user
   ```sql
-  postgres=# CREATE USER tracklift WITH ENCRYPTED PASSWORD 'your_password';
-  postgres=# CREATE DATABASE tracklift;
-  postgres=# GRANT ALL PRIVILEGES ON DATABASE tracklift TO tracklift;
-  postgres=# ALTER DATABASE tracklift OWNER TO tracklift;
+  postgres=# CREATE USER repmate WITH ENCRYPTED PASSWORD 'your_password';
+  postgres=# CREATE DATABASE repmate;
+  postgres=# GRANT ALL PRIVILEGES ON DATABASE repmate TO repmate;
+  postgres=# ALTER DATABASE repmate OWNER TO repmate;
   ```
 
 #### Set Up
@@ -38,8 +38,7 @@ $ docker-compose up --build
 ```sh
 $ python3 -m venv ./venv && source ./venv/bin/activate
 $ pip3 install -r requirements.txt
-$ export FLASK_APP=tracklift
-$ flask db init
+$ export FLASK_APP=repmate
 $ flask db migrate
 $ flask db upgrade
 $ flask run

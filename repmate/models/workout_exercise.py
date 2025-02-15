@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, ForeignKeyConstraint, String, UUID, text
-from tracklift.database.database import database
-from tracklift.models.exercise import Exercise
-from tracklift.models.workout import Workout
+from repmate.database.database import database
+from repmate.models.exercise import Exercise
+from repmate.models.workout import Workout
 
 class WorkoutExercise(database.Model):
   __tablename__ = 'workout_exercises'

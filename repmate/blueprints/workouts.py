@@ -1,9 +1,9 @@
 from flask import Blueprint, redirect, render_template, request
-from tracklift.helpers.time import Time
-from tracklift.models.exercise import Exercise
-from tracklift.models.set import Set
-from tracklift.models.workout import Workout
-from tracklift.models.workout_exercise import WorkoutExercise
+from repmate.helpers.time import Time
+from repmate.models.exercise import Exercise
+from repmate.models.set import Set
+from repmate.models.workout import Workout
+from repmate.models.workout_exercise import WorkoutExercise
 import uuid
 
 bp = Blueprint('workouts', __name__)
