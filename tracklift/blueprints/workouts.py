@@ -1,4 +1,5 @@
 from flask import Blueprint, redirect, render_template, request
+from tracklift.helpers.time import Time
 from tracklift.models.exercise import Exercise
 from tracklift.models.set import Set
 from tracklift.models.workout import Workout
@@ -11,10 +12,13 @@ bp = Blueprint('workouts', __name__)
 def list_workouts():
   workouts = Workout().get_all()
 
+  for workout in workouts:
+    workout.date_added = Time.format(workout.date_added)
+
   return render_template(
     'workouts.html',
     content_title = 'Workouts',
-    workouts = workouts,
+    workouts = sorted(workouts, key = lambda x: x.date_added, reverse = True),
     new_workout_id = uuid.uuid4()
   )
 
