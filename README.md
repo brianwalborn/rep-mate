@@ -1,6 +1,6 @@
 # repmate
 
-A self-hosted fitness application that tracks workouts.
+A self-hosted fitness web app that tracks workouts.
 
 ## Set Up
 
