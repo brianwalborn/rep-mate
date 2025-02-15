@@ -4,7 +4,7 @@ A self-hosted fitness application that tracks workouts.
 
 ## Set Up
 
-> For both Docker Compose and Native, copy `example.env` to a `.env` file and replace the values
+> For both Docker Compose and Native, copy `.env.example` to a `.env` file and replace the values
 
 ### Docker Compose Set Up
 
