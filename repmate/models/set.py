@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKeyConstraint, Integer, UUID, text
+from sqlalchemy import Column, DateTime, Float, ForeignKeyConstraint, Integer, UUID, text
 from repmate.database.database import database
 from repmate.models.workout_exercise import WorkoutExercise
 
@@ -8,7 +8,7 @@ class Set(database.Model):
   id = Column(UUID, server_default = text('gen_random_uuid()'), primary_key = True)
   workout_exercise_id = Column(UUID, nullable = False)
   repetitions = Column(Integer)
-  weight = Column(Integer)
+  weight = Column(Float)
   date_added = Column(DateTime, server_default = text("TIMEZONE('utc', NOW())"), nullable = False)
 
   __table_args__ = (
