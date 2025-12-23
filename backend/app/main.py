@@ -3,7 +3,7 @@ from app.routers import auth, exercises, muscles, workouts
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="RepMate API")
+app = FastAPI(title="Rep Mate API")
 
 # Configure CORS
 app.add_middleware(

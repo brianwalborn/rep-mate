@@ -1,6 +1,6 @@
 # Setup Guide
 
-Get RepMate up and running on your local machine with Docker in under 5 minutes.
+Get Rep Mate up and running on your local machine with Docker in under 5 minutes.
 
 ## Prerequisites
 

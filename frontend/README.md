@@ -1,4 +1,4 @@
-# RepMate Frontend
+# Rep Mate Frontend
 
 A mobile-first workout tracking application built with Vue.js and Tailwind CSS.
 
@@ -71,7 +71,7 @@ For testing without a backend, click "Continue with Demo Mode" on the login page
 
 ## API Integration
 
-The app connects to the RepMate backend API. Make sure the backend is running and the `VITE_API_URL` environment variable is set correctly.
+The app connects to the Rep Mate backend API. Make sure the backend is running and the `VITE_API_URL` environment variable is set correctly.
 
 ## Development
 
