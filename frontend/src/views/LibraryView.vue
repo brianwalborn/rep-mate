@@ -254,6 +254,36 @@
           </div>
         </form>
       </BaseModal>
+
+    <!-- Delete Confirmation Modal -->
+    <BaseModal
+      v-model="showDeleteModal"
+      :title="`Delete ${deleteMode === 'exercise' ? 'Exercise' : 'Muscle'}?`"
+    >
+      <p class="text-gray-400">
+        Are you sure you want to delete <span class="text-white font-semibold">{{ deleteMode === 'exercise' ? editingExercise?.name : editingMuscle?.name }}</span>? This action cannot be undone.
+      </p>
+
+      <template #footer>
+        <div class="p-6 pb-24 lg:pb-6">
+          <div class="flex gap-3">
+            <button
+              @click="showDeleteModal = false"
+              class="flex-1 bg-[#2a2a2a] text-white font-semibold py-3 rounded-xl hover:bg-[#3a3a3a] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              @click="confirmDelete"
+              :disabled="saving"
+              class="flex-1 bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50"
+            >
+              {{ saving ? 'Deleting...' : 'Delete' }}
+            </button>
+          </div>
+        </div>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -273,9 +303,11 @@ const { success, error: showError } = useToast()
 const activeTab = ref('exercises')
 const searchQuery = ref('')
 const showModal = ref(false)
+const showDeleteModal = ref(false)
 const showMuscleDropdown = ref(false)
 const showEquipmentDropdown = ref(false)
 const modalMode = ref('exercise') // 'exercise' or 'muscle'
+const deleteMode = ref('') // 'exercise' or 'muscle'
 const editingExercise = ref(null)
 const editingMuscle = ref(null)
 const errorMessage = ref('')
@@ -431,32 +463,31 @@ const saveMuscle = async () => {
 }
 
 const deleteExerciseHandler = async () => {
-  if (!confirm('Are you sure you want to delete this exercise?')) {
-    return
-  }
-
-  errorMessage.value = ''
-
-  try {
-    await deleteExercise(editingExercise.value.id)
-    closeModal()
-  } catch (err) {
-    errorMessage.value = err.message || 'Failed to delete exercise. Please try again.'
-  }
+  deleteMode.value = 'exercise'
+  showDeleteModal.value = true
 }
 
 const deleteMuscleHandler = async () => {
-  if (!confirm('Are you sure you want to delete this muscle?')) {
-    return
-  }
+  deleteMode.value = 'muscle'
+  showDeleteModal.value = true
+}
 
+const confirmDelete = async () => {
   errorMessage.value = ''
 
   try {
-    await deleteMuscle(editingMuscle.value.id)
+    if (deleteMode.value === 'exercise') {
+      await deleteExercise(editingExercise.value.id)
+      success('Exercise deleted successfully')
+    } else {
+      await deleteMuscle(editingMuscle.value.id)
+      success('Muscle deleted successfully')
+    }
+    showDeleteModal.value = false
     closeModal()
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to delete muscle. Please try again.'
+    errorMessage.value = err.message || `Failed to delete ${deleteMode.value}. Please try again.`
+    showDeleteModal.value = false
   }
 }
 
