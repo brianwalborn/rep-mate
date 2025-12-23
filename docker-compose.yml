@@ -1,37 +1,65 @@
 services:
-  postgres:
-    image: postgres
-    container_name: postgres
+  database:
+    image: postgres:15-alpine
+    container_name: rep-mate-database
     environment:
-      POSTGRES_DB: ${PGDATABASE}
-      POSTGRES_PASSWORD: ${PGPASSWORD}
-      POSTGRES_USER: ${PGUSER}
-    restart: always
+      POSTGRES_USER: repmate
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: repmate
     ports:
-      - 5123:5432
+      - "5432:5432"
     volumes:
-      - ./pData:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -t 1"]
+      test: ["CMD-SHELL", "pg_isready -U repmate"]
       interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 10s
+      timeout: 5s
+      retries: 5
 
-  repmate:
-    container_name: repmate
-    environment:
-      PGDATABASE: ${PGDATABASE}
-      PGHOST: postgres
-      PGPASSWORD: ${PGPASSWORD}
-      PGUSER: ${PGUSER}
+  migration:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - 8000:5000
+    container_name: rep-mate-migration
+    environment:
+      DATABASE_URL: postgresql://repmate:password@database:5432/repmate
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
-    links:
-      - postgres
+    volumes:
+      - ./backend:/app
+    command: alembic upgrade head
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rep-mate-backend
+    environment:
+      DATABASE_URL: postgresql://repmate:password@database:5432/repmate
+    ports:
+      - "8000:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rep-mate-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    environment:
+      - API_URL=http://localhost:8000
+
+volumes:
+  postgres_data:
