@@ -6,7 +6,7 @@
         <div class="flex justify-center mb-4">
           <FireIcon class="w-16 h-16 text-primary" />
         </div>
-        <h2 class="text-3xl font-bold mb-2">repmate</h2>
+        <h2 class="text-3xl font-bold mb-2">Rep Mate</h2>
         <p class="text-gray-500">Track your workouts, achieve your goals</p>
       </div>
 
