@@ -1,9 +1,0 @@
-{% extends 'layout.html' %}
-
-{% block content %}
-  <h3>{{ content_title }}</h3>
-  <form method="post">
-    <a href="/equipment/{{ id }}/edit" class="btn btn-outline-primary">Edit</a>
-    <input type="submit" class="btn btn-outline-danger" value="Delete">
-  </form>
-{% endblock %}
