@@ -8,7 +8,7 @@ router = APIRouter(prefix="/exercises", tags=["Exercises"])
 
 @router.get("", response_model=list[ExerciseOut])
 def list_exercises(db: Session = Depends(get_db)):
-    return db.query(Exercise).all()
+    return db.query(Exercise).order_by(Exercise.name).all()
 
 @router.post("", response_model=ExerciseOut)
 def create_exercise(

@@ -9,7 +9,7 @@ router = APIRouter(prefix="/muscles", tags=["Muscles"])
 @router.get("", response_model=list[MuscleOut])
 def list_muscles(db: Session = Depends(get_db)):
     """Get all muscles"""
-    return db.query(Muscle).filter(Muscle.archived == False).all()
+    return db.query(Muscle).filter(Muscle.archived == False).order_by(Muscle.name).all()
 
 @router.post("", response_model=MuscleOut)
 def create_muscle(
