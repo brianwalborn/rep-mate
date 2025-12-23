@@ -20,7 +20,14 @@ def create_muscle(
     # Check if muscle with same name already exists
     existing = db.query(Muscle).filter(Muscle.name == muscle.name).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Muscle with this name already exists")
+        # If it's archived, unarchive it
+        if existing.archived:
+            existing.archived = False
+            db.commit()
+            db.refresh(existing)
+            return existing
+        else:
+            raise HTTPException(status_code=400, detail="Muscle with this name already exists")
 
     db_muscle = Muscle(**muscle.dict())
     db.add(db_muscle)
