@@ -37,3 +37,38 @@ def archive_exercise(
 
     return exercise
 
+@router.put("/{exercise_id}", response_model=ExerciseOut)
+def update_exercise(
+    exercise_id: str,
+    exercise_data: ExerciseCreate,
+    db: Session = Depends(get_db)
+):
+    exercise = db.query(Exercise).get(exercise_id)
+
+    if not exercise:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+
+    # Update exercise fields
+    for key, value in exercise_data.dict().items():
+        setattr(exercise, key, value)
+
+    db.commit()
+    db.refresh(exercise)
+
+    return exercise
+
+@router.delete("/{exercise_id}")
+def delete_exercise(
+    exercise_id: str,
+    db: Session = Depends(get_db)
+):
+    exercise = db.query(Exercise).get(exercise_id)
+
+    if not exercise:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+
+    db.delete(exercise)
+    db.commit()
+
+    return {"message": "Exercise deleted successfully"}
+
