@@ -1,4 +1,4 @@
-from app.auth.jwt import ALGORITHM, SECRET_KEY
+from app.auth.jwt import ALGORITHM, JWT_ENCODE_SECRET_KEY
 from app.database import get_db
 from app.models.user import User
 from fastapi import Depends, HTTPException
@@ -15,7 +15,7 @@ def get_current_user(
     try:
         payload = jwt.decode(
             creds.credentials,
-            SECRET_KEY,
+            JWT_ENCODE_SECRET_KEY,
             algorithms=[ALGORITHM]
         )
         user_id = payload.get("sub")

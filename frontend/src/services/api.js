@@ -80,6 +80,20 @@ export default {
     return api.delete(`/exercises/${id}`)
   },
 
+  // Equipment
+  getEquipment() {
+    return api.get('/equipment')
+  },
+  createEquipment(equipment) {
+    return api.post('/equipment', equipment)
+  },
+  updateEquipment(id, equipment) {
+    return api.put(`/equipment/${id}`, equipment)
+  },
+  deleteEquipment(id) {
+    return api.delete(`/equipment/${id}`)
+  },
+
   // Muscles
   getMuscles() {
     return api.get('/muscles')

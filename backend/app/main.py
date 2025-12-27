@@ -1,5 +1,5 @@
 from app.database import Base, engine
-from app.routers import auth, exercises, muscles, workouts
+from app.routers import auth, equipment, exercises, muscles, workouts
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,6 +15,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(equipment.router)
 app.include_router(exercises.router)
 app.include_router(muscles.router)
 app.include_router(workouts.router)
