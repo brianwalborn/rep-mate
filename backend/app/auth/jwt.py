@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta
 from jose import jwt
+from os import getenv
 
-SECRET_KEY = "dev-secret-change-me"
+ACCESS_TOKEN_EXPIRY_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRY_MINUTES", "120"))
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+JWT_ENCODE_SECRET_KEY = getenv("JWT_ENCODE_SECRET_KEY", "dev-secret-change-me")
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRY_MINUTES)
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    return jwt.encode(to_encode, JWT_ENCODE_SECRET_KEY, algorithm=ALGORITHM)
