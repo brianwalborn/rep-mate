@@ -22,7 +22,8 @@ WORKDIR /app
 # Install only runtime dependencies
 RUN apk add --no-cache \
     libpq \
-    libffi
+    libffi \
+    postgresql-client
 
 # Copy Python packages from builder
 COPY --from=builder /root/.local /root/.local
