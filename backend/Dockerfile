@@ -30,6 +30,7 @@ COPY --from=builder /root/.local /root/.local
 
 # Copy only necessary application code
 COPY app ./app
+COPY alembic ./alembic
 COPY alembic.ini ./
 
 # Make sure scripts in .local are usable
