@@ -149,7 +149,14 @@
 
         <!-- Sets List -->
         <div class="space-y-2">
+          <!-- Cardio Equipment: No sets, just a message -->
+          <div v-if="isCardioEquipment(exercise.equipment)" class="text-center py-6 text-sm text-gray-500">
+            Use the notes button above to track your workout
+          </div>
+
+          <!-- Regular Equipment: Show sets with reps/weight -->
           <div
+            v-else
             v-for="(set, index) in exercise.sets"
             :key="index"
             class="flex items-center gap-3 bg-[#2a2a2a] rounded-xl p-3 border-2 transition-all"
@@ -210,8 +217,9 @@
             </button>
           </div>
 
-          <!-- Add Set Button -->
+          <!-- Add Set Button (only for non-cardio equipment) -->
           <button
+            v-if="!isCardioEquipment(exercise.equipment)"
             @click="addSet(exercise.id)"
             class="w-full bg-[#2a2a2a] border-2 border-dashed border-[#444] rounded-xl py-3 flex items-center justify-center gap-2 text-sm text-gray-500 hover:border-primary hover:text-primary transition-all"
           >
@@ -338,7 +346,7 @@
           <h3 class="text-lg font-semibold mb-2">{{ editingExerciseForNotes?.name }}</h3>
           <p class="text-sm text-gray-500 mb-4">Add notes about form, feelings, or reminders for next time</p>
         </div>
-        
+
         <div>
           <textarea
             v-model="notesText"
@@ -518,6 +526,11 @@ const isExerciseCompleted = (exercise) => {
   return exercise.sets.length > 0 && exercise.sets.every(set => set.completed)
 }
 
+// Check if equipment is cardio (no reps/weight tracking)
+const isCardioEquipment = (equipment) => {
+  return equipment === 'Treadmill' || equipment === 'Bike'
+}
+
 // Progress ring computed properties
 const exerciseRingOffset = computed(() => {
   if (totalExercises.value === 0) return circumference
@@ -618,9 +631,9 @@ const addExerciseFromLibrary = (libraryExercise) => {
     equipment: libraryExercise.equipment,
     muscles: libraryExercise.muscles,
     notes: '',
-    sets: [
-      { weight: 0, reps: 0, completed: false }
-    ]
+    sets: isCardioEquipment(libraryExercise.equipment)
+      ? [] // No sets for cardio equipment
+      : [{ weight: 0, reps: 0, completed: false }]
   }
 
   // Start timer when first exercise is added
