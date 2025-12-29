@@ -117,13 +117,29 @@
         :class="isExerciseCompleted(exercise) ? 'border-primary bg-primary/5' : 'border-[#2a2a2a]'"
       >
         <!-- Exercise Header -->
-        <div class="flex justify-between items-start mb-4">
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold mb-1">{{ exercise.name }}</h3>
-            <div class="text-sm text-gray-500">
-              {{ exercise.muscles.join(', ') }} • {{ exercise.equipment }}
+        <div class="flex justify-between items-start" :class="{ 'mb-4': !isCollapsed(exercise.id) }">
+          <button
+            @click="toggleCollapse(exercise.id)"
+            class="flex-1 text-left"
+          >
+            <div class="flex items-start gap-2">
+              <svg
+                class="w-5 h-5 mt-0.5 text-gray-500 transition-transform flex-shrink-0"
+                :class="{ 'rotate-180': !isCollapsed(exercise.id) }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+              <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-1">{{ exercise.name }}</h3>
+                <div class="text-sm text-gray-500">
+                  {{ exercise.muscles.join(', ') }} • {{ exercise.equipment }}
+                </div>
+              </div>
             </div>
-          </div>
+          </button>
           <div class="flex gap-1">
             <button
               @click="openNotesModal(exercise)"
@@ -148,7 +164,7 @@
         </div>
 
         <!-- Sets List -->
-        <div class="space-y-2">
+        <div v-if="!isCollapsed(exercise.id)" class="space-y-2">
           <!-- Cardio Equipment: No sets, just a message -->
           <div v-if="isCardioEquipment(exercise.equipment)" class="text-center py-6 text-sm text-gray-500">
             Use the notes button above to track your workout
@@ -414,6 +430,7 @@ const showNotesModal = ref(false)
 const exerciseSearch = ref('')
 const editingExerciseForNotes = ref(null)
 const notesText = ref('')
+const collapsedExercises = ref(new Set())
 
 // Timer state
 const duration = ref(0) // Duration in minutes
@@ -433,7 +450,8 @@ const saveWorkoutToStorage = () => {
   const workoutState = {
     exercises: workoutExercises.value,
     duration: duration.value,
-    startTime: workoutStartTime.value
+    startTime: workoutStartTime.value,
+    collapsedExercises: Array.from(collapsedExercises.value)
   }
   localStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(workoutState))
 }
@@ -447,6 +465,7 @@ const loadWorkoutFromStorage = () => {
       workoutExercises.value = workoutState.exercises || []
       duration.value = workoutState.duration || 0
       workoutStartTime.value = workoutState.startTime
+      collapsedExercises.value = new Set(workoutState.collapsedExercises || [])
 
       // Resume timer if workout was in progress
       if (workoutStartTime.value && workoutExercises.value.length > 0) {
@@ -467,7 +486,7 @@ const clearWorkoutStorage = () => {
 }
 
 // Watch for changes and save to localStorage
-watch([workoutExercises, duration], () => {
+watch([workoutExercises, duration, collapsedExercises], () => {
   if (workoutExercises.value.length > 0) {
     saveWorkoutToStorage()
   }
@@ -529,6 +548,18 @@ const isExerciseCompleted = (exercise) => {
 // Check if equipment is cardio (no reps/weight tracking)
 const isCardioEquipment = (equipment) => {
   return equipment === 'Treadmill' || equipment === 'Bike'
+}
+
+const toggleCollapse = (exerciseId) => {
+  if (collapsedExercises.value.has(exerciseId)) {
+    collapsedExercises.value.delete(exerciseId)
+  } else {
+    collapsedExercises.value.add(exerciseId)
+  }
+}
+
+const isCollapsed = (exerciseId) => {
+  return collapsedExercises.value.has(exerciseId)
 }
 
 // Progress ring computed properties
