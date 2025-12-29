@@ -103,6 +103,17 @@
           class="bg-[#0a0a0a] border border-[#2a2a2a] rounded-xl p-4"
         >
           <h3 class="font-semibold text-lg mb-3">{{ exercise.exercise_name }}</h3>
+          
+          <!-- Exercise Notes -->
+          <div v-if="exercise.notes" class="mb-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <div class="text-sm text-gray-300">{{ exercise.notes }}</div>
+            </div>
+          </div>
+
           <div class="space-y-2">
             <div
               v-for="(set, index) in exercise.sets"

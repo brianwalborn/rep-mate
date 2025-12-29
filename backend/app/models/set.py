@@ -11,6 +11,7 @@ class WorkoutExercise(Base):
     exercise_id = Column(String)
     exercise_name = Column(String)
     muscles = Column(JSON, nullable=True)  # Add muscles field for denormalized data
+    notes = Column(String, nullable=True)  # Add notes field for exercise notes
 
     workout = relationship("Workout", back_populates="exercises")
     sets = relationship(

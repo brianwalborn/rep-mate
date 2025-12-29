@@ -10,6 +10,7 @@ class SetCreate(BaseModel):
 class WorkoutExerciseCreate(BaseModel):
     exercise_id: str
     name: str  # Accept 'name' from frontend
+    notes: Optional[str] = ''
     sets: List[SetCreate]
 
 class WorkoutCreate(BaseModel):
@@ -31,6 +32,7 @@ class WorkoutExerciseOut(BaseModel):
     exercise_id: str
     exercise_name: str
     muscles: Optional[List[str]] = []
+    notes: Optional[str] = ''
     sets: List[SetOut]
 
     class Config:

@@ -124,15 +124,27 @@
               {{ exercise.muscles.join(', ') }} • {{ exercise.equipment }}
             </div>
           </div>
-          <button
-            @click="removeExercise(exercise.id)"
-            class="text-gray-500 hover:text-red-500 transition-colors p-2"
-            title="Remove exercise"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+          <div class="flex gap-1">
+            <button
+              @click="openNotesModal(exercise)"
+              class="text-gray-500 hover:text-primary transition-colors p-2"
+              :class="{ 'text-primary': exercise.notes }"
+              title="Add notes"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            <button
+              @click="removeExercise(exercise.id)"
+              class="text-gray-500 hover:text-red-500 transition-colors p-2"
+              title="Remove exercise"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- Sets List -->
@@ -313,6 +325,46 @@
         </div>
       </template>
     </BaseModal>
+
+    <!-- Notes Modal -->
+    <BaseModal
+      v-model="showNotesModal"
+      title="Exercise Notes"
+      max-width="lg:w-[600px]"
+      content-padding="p-6 pb-24 lg:pb-8"
+    >
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-lg font-semibold mb-2">{{ editingExerciseForNotes?.name }}</h3>
+          <p class="text-sm text-gray-500 mb-4">Add notes about form, feelings, or reminders for next time</p>
+        </div>
+        
+        <div>
+          <textarea
+            v-model="notesText"
+            rows="6"
+            class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary resize-none"
+            placeholder="e.g., Focus on keeping back straight, felt strong today, increase weight next time..."
+          ></textarea>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button
+            @click="saveNotes"
+            class="flex-1 bg-gradient-to-r from-primary to-primary-light text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity"
+          >
+            Save Notes
+          </button>
+          <button
+            v-if="editingExerciseForNotes?.notes"
+            @click="clearNotes"
+            class="px-6 bg-[#2a2a2a] text-gray-400 font-semibold py-3 rounded-xl hover:bg-[#3a3a3a] transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -350,7 +402,10 @@ const greeting = computed(() => {
 
 const showAddExercise = ref(false)
 const showFinishModal = ref(false)
+const showNotesModal = ref(false)
 const exerciseSearch = ref('')
+const editingExerciseForNotes = ref(null)
+const notesText = ref('')
 
 // Timer state
 const duration = ref(0) // Duration in minutes
@@ -562,6 +617,7 @@ const addExerciseFromLibrary = (libraryExercise) => {
     name: libraryExercise.name,
     equipment: libraryExercise.equipment,
     muscles: libraryExercise.muscles,
+    notes: '',
     sets: [
       { weight: 0, reps: 0, completed: false }
     ]
@@ -577,6 +633,30 @@ const addExerciseFromLibrary = (libraryExercise) => {
   exerciseSearch.value = ''
 }
 
+const openNotesModal = (exercise) => {
+  editingExerciseForNotes.value = exercise
+  notesText.value = exercise.notes || ''
+  showNotesModal.value = true
+}
+
+const saveNotes = () => {
+  if (editingExerciseForNotes.value) {
+    editingExerciseForNotes.value.notes = notesText.value
+  }
+  showNotesModal.value = false
+  editingExerciseForNotes.value = null
+  notesText.value = ''
+}
+
+const clearNotes = () => {
+  if (editingExerciseForNotes.value) {
+    editingExerciseForNotes.value.notes = ''
+  }
+  showNotesModal.value = false
+  editingExerciseForNotes.value = null
+  notesText.value = ''
+}
+
 const finishWorkout = async () => {
   try {
     // Stop the timer and get final duration
@@ -589,6 +669,7 @@ const finishWorkout = async () => {
       exercises: workoutExercises.value.map(ex => ({
         exercise_id: ex.exerciseId, // Use the real exercise ID from database
         name: ex.name,
+        notes: ex.notes || '',
         sets: ex.sets.map(set => ({
           weight: parseFloat(set.weight) || 0,
           reps: parseInt(set.reps) || 0,
