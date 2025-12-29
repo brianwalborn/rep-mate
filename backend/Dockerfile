@@ -1,19 +1,38 @@
-FROM python:3.11-slim
+# Build stage
+FROM python:3.11-alpine AS builder
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install build dependencies
+RUN apk add --no-cache \
     gcc \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+    musl-dev \
+    postgresql-dev \
+    libffi-dev
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Copy application code
-COPY . .
+# Runtime stage
+FROM python:3.11-alpine
+
+WORKDIR /app
+
+# Install only runtime dependencies
+RUN apk add --no-cache \
+    libpq \
+    libffi
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /root/.local
+
+# Copy only necessary application code
+COPY app ./app
+COPY alembic.ini ./
+
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
 
 # Expose port
 EXPOSE 8000
