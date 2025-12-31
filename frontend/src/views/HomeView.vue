@@ -699,6 +699,7 @@ const finishWorkout = async () => {
       exercises: workoutExercises.value.map(ex => ({
         exercise_id: ex.exerciseId, // Use the real exercise ID from database
         name: ex.name,
+        equipment: ex.equipment,
         notes: ex.notes || '',
         sets: ex.sets.map(set => ({
           weight: parseFloat(set.weight) || 0,

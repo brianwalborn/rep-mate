@@ -16,6 +16,7 @@ def create_workout(db: Session, payload, user_id: str):
             workout_id=workout.id,
             exercise_id=ex.exercise_id,
             exercise_name=ex.name,  # Changed from exercise_name to name
+            equipment=ex.equipment,
             notes=ex.notes  # Add notes field
         )
         db.add(workout_ex)

@@ -102,8 +102,11 @@
           :key="exercise.id"
           class="bg-[#0a0a0a] border border-[#2a2a2a] rounded-xl p-4"
         >
-          <h3 class="font-semibold text-lg mb-3">{{ exercise.exercise_name }}</h3>
-          
+          <div class="mb-3">
+            <h3 class="font-semibold text-lg">{{ exercise.exercise_name }}</h3>
+            <div v-if="exercise.equipment" class="text-sm text-gray-500 mt-1">{{ exercise.equipment }}</div>
+          </div>
+
           <!-- Exercise Notes -->
           <div v-if="exercise.notes" class="mb-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
             <div class="flex items-start gap-2">
