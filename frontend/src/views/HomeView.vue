@@ -12,7 +12,7 @@
     </div>
 
     <!-- Progress Rings -->
-    <div class="flex justify-around lg:justify-center lg:gap-12 px-5 lg:px-8 mb-5">
+    <div class="flex justify-center items-center lg:gap-12 px-5 lg:px-8 mb-5">
       <div class="text-center">
         <div class="relative w-20 h-20 mx-auto mb-2">
           <svg class="transform -rotate-90 w-20 h-20">
@@ -36,6 +36,15 @@
         <div class="text-xs text-gray-500">Exercises</div>
       </div>
 
+      <div class="text-center mx-8 lg:mx-12">
+        <div class="flex flex-col items-center justify-center h-20 mb-2 w-24">
+          <div class="text-3xl font-bold tabular-nums">
+            {{ formattedDuration }}
+          </div>
+        </div>
+        <div class="text-xs text-gray-500">Duration</div>
+      </div>
+
       <div class="text-center">
         <div class="relative w-20 h-20 mx-auto mb-2">
           <svg class="transform -rotate-90 w-20 h-20">
@@ -57,29 +66,6 @@
           </div>
         </div>
         <div class="text-xs text-gray-500">Sets Done</div>
-      </div>
-
-      <div class="text-center">
-        <div class="relative w-20 h-20 mx-auto mb-2">
-          <svg class="transform -rotate-90 w-20 h-20">
-            <circle cx="40" cy="40" r="32" stroke="#2a2a2a" stroke-width="8" fill="none" />
-            <circle
-              cx="40"
-              cy="40"
-              r="32"
-              stroke="#FFA07A"
-              stroke-width="8"
-              fill="none"
-              :stroke-dasharray="circumference"
-              :stroke-dashoffset="durationRingOffset"
-              class="transition-all duration-500"
-            />
-          </svg>
-          <div class="absolute inset-0 flex items-center justify-center text-sm font-bold">
-            {{ formattedDuration }}
-          </div>
-        </div>
-        <div class="text-xs text-gray-500">Duration</div>
       </div>
     </div>
 
