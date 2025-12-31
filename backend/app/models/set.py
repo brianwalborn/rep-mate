@@ -10,6 +10,7 @@ class WorkoutExercise(Base):
     workout_id = Column(String, ForeignKey("workouts.id"))
     exercise_id = Column(String)
     exercise_name = Column(String)
+    equipment = Column(String, nullable=True)  # Equipment used for the exercise
     muscles = Column(JSON, nullable=True)  # Add muscles field for denormalized data
     notes = Column(String, nullable=True)  # Add notes field for exercise notes
 

@@ -10,6 +10,7 @@ class SetCreate(BaseModel):
 class WorkoutExerciseCreate(BaseModel):
     exercise_id: str
     name: str  # Accept 'name' from frontend
+    equipment: Optional[str] = None
     notes: Optional[str] = ''
     sets: List[SetCreate]
 
@@ -31,6 +32,7 @@ class WorkoutExerciseOut(BaseModel):
     id: str
     exercise_id: str
     exercise_name: str
+    equipment: Optional[str] = None
     muscles: Optional[List[str]] = []
     notes: Optional[str] = ''
     sets: List[SetOut]
