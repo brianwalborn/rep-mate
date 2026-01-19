@@ -3,7 +3,7 @@ from app.auth.jwt import create_access_token
 from app.auth.security import hash_password, verify_password
 from app.database import get_db
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserProfile
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UpdateProfile, UserProfile
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -38,4 +38,21 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserProfile)
 def get_profile(user: User = Depends(get_current_user)):
+    return user
+
+@router.put("/me", response_model=UserProfile)
+def update_profile(
+    payload: UpdateProfile,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if payload.name is not None:
+        user.name = payload.name
+    if payload.weight_unit is not None:
+        if payload.weight_unit not in ['lbs', 'kg']:
+            raise HTTPException(status_code=400, detail="weight_unit must be 'lbs' or 'kg'")
+        user.weight_unit = payload.weight_unit
+    
+    db.commit()
+    db.refresh(user)
     return user

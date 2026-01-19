@@ -43,13 +43,19 @@ export function formatTime(dateString) {
 }
 
 /**
- * Format volume (lbs) - shows "K" for thousands
+ * Format volume - shows "K" for thousands, or 2 decimals for kg
  */
-export function formatVolume(volume) {
+export function formatVolume(volume, unit = 'lbs') {
   if (volume >= 1000) {
     return `${(volume / 1000).toFixed(1)}K`
   }
-  return volume.toString()
+  if (unit === 'kg') {
+    // For kg under 1000, round to 2 decimal places
+    // If it's a whole number, show without decimals
+    const rounded = volume.toFixed(2)
+    return parseFloat(rounded).toString()
+  }
+  return Math.round(volume).toString()
 }
 
 /**
@@ -82,3 +88,38 @@ export function getUniqueMuscles(workout) {
   })
   return Array.from(musclesSet).sort()
 }
+
+/**
+ * Convert pounds to kilograms
+ */
+export function lbsToKg(lbs) {
+  return lbs / 2.20462
+}
+
+/**
+ * Convert kilograms to pounds
+ */
+export function kgToLbs(kg) {
+  return kg * 2.20462
+}
+
+/**
+ * Convert weight from one unit to another
+ */
+export function convertWeight(weight, fromUnit, toUnit) {
+  if (fromUnit === toUnit) return weight
+  if (fromUnit === 'lbs' && toUnit === 'kg') return lbsToKg(weight)
+  if (fromUnit === 'kg' && toUnit === 'lbs') return kgToLbs(weight)
+  return weight
+}
+
+/**
+ * Format weight for display with appropriate decimals
+ */
+export function formatWeight(weight, unit = 'lbs') {
+  if (unit === 'kg') {
+    return weight.toFixed(1) // Show 1 decimal for kg
+  }
+  return Math.round(weight).toString() // No decimals for lbs
+}
+

@@ -29,5 +29,6 @@ class Set(Base):
     weight = Column(Float)  # Changed from Integer to Float
     reps = Column(Integer)
     completed = Column(Boolean, default=False)  # Added completed field
+    unit = Column(String, default='lbs', nullable=False)  # Weight unit: 'lbs' or 'kg'
 
     exercise = relationship("WorkoutExercise", back_populates="sets")

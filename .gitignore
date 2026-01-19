@@ -67,6 +67,9 @@ dist/
 dist-ssr/
 *.local
 
+# Dataabse
+pgdata/
+
 # Build outputs
 *.tsbuildinfo
 .cache/
