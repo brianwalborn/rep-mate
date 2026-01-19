@@ -45,6 +45,9 @@ export default {
   getProfile() {
     return api.get('/auth/me')
   },
+  updateProfile(data) {
+    return api.put('/auth/me', data)
+  },
 
   // Workouts
   getWorkouts() {

@@ -19,6 +19,28 @@
         <div class="text-lg">{{ userEmail || 'Not set' }}</div>
       </div>
 
+      <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5">
+        <div class="text-gray-500 text-sm mb-3">Weight Unit</div>
+        <div class="flex gap-2">
+          <button
+            @click="updateWeightUnit('lbs')"
+            class="flex-1 py-3 rounded-lg font-semibold transition-all"
+            :class="weightUnit === 'lbs' ? 'bg-primary text-white' : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#3a3a3a]'"
+            :disabled="updating"
+          >
+            lbs
+          </button>
+          <button
+            @click="updateWeightUnit('kg')"
+            class="flex-1 py-3 rounded-lg font-semibold transition-all"
+            :class="weightUnit === 'kg' ? 'bg-primary text-white' : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#3a3a3a]'"
+            :disabled="updating"
+          >
+            kg
+          </button>
+        </div>
+      </div>
+
       <button
         @click="logout"
         class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-xl transition-colors mt-8"
@@ -40,12 +62,29 @@ const router = useRouter()
 
 const userName = ref('')
 const userEmail = ref('')
+const weightUnit = ref('lbs')
 const loading = ref(true)
+const updating = ref(false)
 const error = ref(null)
 
 const logout = () => {
   localStorage.removeItem('token')
   router.push('/login')
+}
+
+const updateWeightUnit = async (unit) => {
+  if (weightUnit.value === unit) return
+  
+  try {
+    updating.value = true
+    await api.updateProfile({ weight_unit: unit })
+    weightUnit.value = unit
+  } catch (err) {
+    console.error('Failed to update weight unit:', err)
+    error.value = 'Failed to update preference. Please try again.'
+  } finally {
+    updating.value = false
+  }
 }
 
 // Fetch user profile on mount
@@ -56,6 +95,7 @@ onMounted(async () => {
     const response = await api.getProfile()
     userName.value = response.data.name
     userEmail.value = response.data.email
+    weightUnit.value = response.data.weight_unit || 'lbs'
   } catch (err) {
     console.error('Failed to load user profile:', err)
     error.value = 'Failed to load profile. Please try again.'

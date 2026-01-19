@@ -19,6 +19,11 @@ class UserProfile(BaseModel):
     id: str
     email: str
     name: Optional[str] = None
+    weight_unit: str = 'lbs'
 
     class Config:
         from_attributes = True
+
+class UpdateProfile(BaseModel):
+    name: Optional[str] = None
+    weight_unit: Optional[str] = None

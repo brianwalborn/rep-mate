@@ -45,8 +45,8 @@
             <div class="text-xs text-gray-500">Sets</div>
           </div>
           <div>
-            <div class="text-xl font-semibold text-primary">{{ formatVolume(getTotalVolume(workout)) }}</div>
-            <div class="text-xs text-gray-500">Volume (lbs)</div>
+            <div class="text-xl font-semibold text-primary">{{ formatVolume(getTotalVolumeInUserUnit(workout), userWeightUnit) }}</div>
+            <div class="text-xs text-gray-500">Volume ({{ userWeightUnit }})</div>
           </div>
         </div>
 
@@ -90,8 +90,8 @@
           <div class="text-xs text-gray-500 mt-1">Sets</div>
         </div>
         <div class="text-center">
-          <div class="text-2xl font-bold text-primary">{{ formatVolume(getTotalVolume(selectedWorkout)) }}</div>
-          <div class="text-xs text-gray-500 mt-1">Volume</div>
+          <div class="text-2xl font-bold text-primary">{{ formatVolume(getTotalVolumeInUserUnit(selectedWorkout), userWeightUnit) }}</div>
+          <div class="text-xs text-gray-500 mt-1">Volume ({{ userWeightUnit }})</div>
         </div>
       </div>
 
@@ -126,7 +126,7 @@
               <div class="text-gray-500">Set {{ index + 1 }}</div>
               <div class="flex items-center gap-4">
                 <div v-if="set.weight > 0" class="text-gray-300">
-                  <span class="font-semibold">{{ set.weight }}</span> lbs
+                  <span class="font-semibold">{{ formatWeight(getDisplayWeight(set).weight, getDisplayWeight(set).unit) }}</span> {{ getDisplayWeight(set).unit }}
                 </div>
                 <div class="text-gray-300">
                   <span class="font-semibold">{{ set.reps }}</span> reps
@@ -186,12 +186,14 @@ import EmptyState from '../components/EmptyState.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { useToast } from '../composables/useToast'
 import { useWorkouts } from '../composables/useWorkouts'
-import { formatDate, formatTime, formatVolume, getTotalSets, getTotalVolume, getUniqueMuscles } from '../utils/formatters'
+import api from '../services/api'
+import { convertWeight, formatDate, formatTime, formatVolume, formatWeight, getTotalSets, getTotalVolume, getUniqueMuscles } from '../utils/formatters'
 
 const { workouts, loading, fetchWorkouts, deleteWorkout } = useWorkouts()
 const { success, error } = useToast()
 const selectedWorkout = ref(null)
 const showDeleteConfirm = ref(false)
+const userWeightUnit = ref('lbs')
 
 const sortedWorkouts = computed(() => {
   return [...workouts.value].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -200,6 +202,25 @@ const sortedWorkouts = computed(() => {
 const viewWorkout = (workout) => {
   selectedWorkout.value = workout
   showDeleteConfirm.value = false
+}
+
+const getTotalVolumeInUserUnit = (workout) => {
+  return workout.exercises.reduce((total, exercise) => {
+    return total + exercise.sets.reduce((sum, set) => {
+      if (!set.completed) return sum
+      // Weight is stored in lbs, convert to user's preferred unit
+      const weightInUserUnit = convertWeight(set.weight, 'lbs', userWeightUnit.value)
+      return sum + (weightInUserUnit * set.reps)
+    }, 0)
+  }, 0)
+}
+
+const getDisplayWeight = (set) => {
+  // Weight is stored in lbs in database
+  // If set has a unit recorded, show it in that unit, otherwise use user preference
+  const displayUnit = set.unit || userWeightUnit.value
+  const weight = convertWeight(set.weight, 'lbs', displayUnit)
+  return { weight, unit: displayUnit }
 }
 
 const handleDeleteWorkout = async () => {
@@ -216,7 +237,16 @@ const handleDeleteWorkout = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   fetchWorkouts()
+  
+  // Load user profile to get weight unit preference
+  try {
+    const response = await api.getProfile()
+    userWeightUnit.value = response.data.weight_unit || 'lbs'
+  } catch (err) {
+    console.error('Failed to load user profile:', err)
+    userWeightUnit.value = 'lbs'
+  }
 })
 </script>

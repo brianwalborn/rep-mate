@@ -77,8 +77,8 @@
           <p class="text-xs text-gray-500">Total Sets</p>
         </div>
         <div>
-          <h4 class="text-2xl text-primary mb-1">{{ formatVolume(totalVolume) }}</h4>
-          <p class="text-xs text-gray-500">Volume (lbs)</p>
+          <h4 class="text-2xl text-primary mb-1">{{ formatVolume(totalVolume, userWeightUnit) }}</h4>
+          <p class="text-xs text-gray-500">Volume ({{ userWeightUnit }})</p>
         </div>
         <div>
           <h4 class="text-2xl text-primary mb-1">{{ totalReps }}</h4>
@@ -127,6 +127,15 @@
             </div>
           </button>
           <div class="flex gap-1">
+            <button
+              v-if="!isCardioEquipment(exercise.equipment) && exercise.equipment !== 'Bodyweight'"
+              @click.stop="toggleExerciseUnit(exercise.id)"
+              class="text-gray-500 hover:text-primary transition-colors px-3 py-2 text-sm font-semibold rounded-lg hover:bg-[#2a2a2a]"
+              :class="{ 'text-primary bg-primary/10': exercise.unit === 'kg' }"
+              title="Switch weight unit"
+            >
+              {{ exercise.unit || 'lbs' }}
+            </button>
             <button
               @click="openNotesModal(exercise)"
               class="text-gray-500 hover:text-primary transition-colors p-2"
@@ -183,8 +192,9 @@
                 inputmode="decimal"
                 class="w-full bg-[#1a1a1a] rounded-lg px-3 py-2 text-center font-semibold focus:outline-none focus:ring-2 focus:ring-primary/50"
                 placeholder="0"
+                :step="exercise.unit === 'kg' ? '0.5' : '5'"
               />
-              <span class="text-xs text-gray-500 whitespace-nowrap">lbs</span>
+              <span class="text-xs text-gray-500 whitespace-nowrap">{{ exercise.unit || 'lbs' }}</span>
             </div>
 
             <!-- Bodyweight placeholder -->
@@ -386,7 +396,7 @@ import { useExercises } from '../composables/useExercises'
 import { useToast } from '../composables/useToast'
 import { useWorkouts } from '../composables/useWorkouts'
 import api from '../services/api'
-import { formatVolume } from '../utils/formatters'
+import { convertWeight, formatVolume } from '../utils/formatters'
 
 // Use composables
 const { exercises: exerciseLibrary, fetchExercises } = useExercises()
@@ -401,6 +411,7 @@ const currentDate = new Date().toLocaleDateString('en-US', {
 })
 
 const userName = ref('User')
+const userWeightUnit = ref('lbs') // User's preferred weight unit
 const circumference = 2 * Math.PI * 32
 
 const greeting = computed(() => {
@@ -514,7 +525,10 @@ const setsCompleted = computed(() => {
 const totalVolume = computed(() => {
   return workoutExercises.value.reduce((sum, ex) => {
     return sum + ex.sets.reduce((setSum, set) => {
-      return setSum + (set.completed ? set.weight * set.reps : 0)
+      if (!set.completed) return setSum
+      // Convert weight to user's preferred unit before calculating volume
+      const weightInUserUnit = convertWeight(set.weight, set.unit || 'lbs', userWeightUnit.value)
+      return setSum + (weightInUserUnit * set.reps)
     }, 0)
   }, 0)
 })
@@ -579,13 +593,15 @@ const addSet = (exerciseId) => {
     exercise.sets.push({
       weight: lastSet.weight,
       reps: lastSet.reps,
-      completed: false
+      completed: false,
+      unit: exercise.unit || userWeightUnit.value
     })
   } else if (exercise) {
     exercise.sets.push({
       weight: 0,
       reps: 0,
-      completed: false
+      completed: false,
+      unit: exercise.unit || userWeightUnit.value
     })
   }
 }
@@ -648,9 +664,10 @@ const addExerciseFromLibrary = (libraryExercise) => {
     equipment: libraryExercise.equipment,
     muscles: libraryExercise.muscles,
     notes: '',
+    unit: userWeightUnit.value, // Use user's preferred unit
     sets: isCardioEquipment(libraryExercise.equipment)
       ? [] // No sets for cardio equipment
-      : [{ weight: 0, reps: 0, completed: false }]
+      : [{ weight: 0, reps: 0, completed: false, unit: userWeightUnit.value }]
   }
 
   // Start timer when first exercise is added
@@ -667,6 +684,18 @@ const openNotesModal = (exercise) => {
   editingExerciseForNotes.value = exercise
   notesText.value = exercise.notes || ''
   showNotesModal.value = true
+}
+
+const toggleExerciseUnit = (exerciseId) => {
+  const exercise = workoutExercises.value.find(ex => ex.id === exerciseId)
+  if (exercise) {
+    const newUnit = exercise.unit === 'lbs' ? 'kg' : 'lbs'
+    exercise.unit = newUnit
+    // Update all sets in this exercise to the new unit
+    exercise.sets.forEach(set => {
+      set.unit = newUnit
+    })
+  }
 }
 
 const saveNotes = () => {
@@ -701,11 +730,17 @@ const finishWorkout = async () => {
         name: ex.name,
         equipment: ex.equipment,
         notes: ex.notes || '',
-        sets: ex.sets.map(set => ({
-          weight: parseFloat(set.weight) || 0,
-          reps: parseInt(set.reps) || 0,
-          completed: set.completed
-        }))
+        sets: ex.sets.map(set => {
+          const setUnit = set.unit || 'lbs'
+          // Convert to lbs for storage if in kg
+          const weightInLbs = setUnit === 'kg' ? convertWeight(parseFloat(set.weight) || 0, 'kg', 'lbs') : parseFloat(set.weight) || 0
+          return {
+            weight: weightInLbs,
+            reps: parseInt(set.reps) || 0,
+            completed: set.completed,
+            unit: setUnit
+          }
+        })
       }))
     }
 
@@ -739,10 +774,12 @@ onMounted(async () => {
       const response = await api.getProfile()
       console.log('Profile response:', response.data)
       userName.value = response.data.name || 'User'
+      userWeightUnit.value = response.data.weight_unit || 'lbs'
     } catch (error) {
       console.error('Failed to load user profile:', error)
       console.error('Error details:', error.response?.data)
       userName.value = 'User'
+      userWeightUnit.value = 'lbs'
     }
   } catch (error) {
     console.error('Failed to initialize home view:', error)

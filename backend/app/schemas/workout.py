@@ -6,6 +6,7 @@ class SetCreate(BaseModel):
     weight: float
     reps: int
     completed: Optional[bool] = False
+    unit: str = 'lbs'  # Weight unit for this set
 
 class WorkoutExerciseCreate(BaseModel):
     exercise_id: str
@@ -24,6 +25,7 @@ class SetOut(BaseModel):
     weight: float
     reps: int
     completed: bool
+    unit: str
 
     class Config:
         from_attributes = True

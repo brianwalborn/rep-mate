@@ -9,3 +9,4 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
+    weight_unit = Column(String, default='lbs', nullable=False)  # 'lbs' or 'kg'

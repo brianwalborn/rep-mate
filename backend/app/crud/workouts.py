@@ -28,7 +28,8 @@ def create_workout(db: Session, payload, user_id: str):
                     workout_exercise_id=workout_ex.id,
                     weight=s.weight,
                     reps=s.reps,
-                    completed=s.completed
+                    completed=s.completed,
+                    unit=s.unit
                 )
             )
 
