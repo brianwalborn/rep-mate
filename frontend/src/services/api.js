@@ -109,5 +109,25 @@ export default {
   },
   deleteMuscle(id) {
     return api.delete(`/muscles/${id}`)
+  },
+
+  // Templates
+  getTemplates() {
+    return api.get('/templates')
+  },
+  getTemplatesSummary() {
+    return api.get('/templates/summary')
+  },
+  getTemplate(id) {
+    return api.get(`/templates/${id}`)
+  },
+  createTemplate(template) {
+    return api.post('/templates', template)
+  },
+  updateTemplate(id, template) {
+    return api.put(`/templates/${id}`, template)
+  },
+  deleteTemplate(id) {
+    return api.delete(`/templates/${id}`)
   }
 }

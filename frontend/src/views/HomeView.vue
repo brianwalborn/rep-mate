@@ -279,40 +279,98 @@
       </template>
     </FloatingActionButton>
 
-    <!-- Add Exercise Modal -->
+    <!-- Add Exercise/Template Modal -->
     <BaseModal
       v-model="showAddExercise"
-      title="Add Exercise"
+      title="Add to Workout"
       max-width="lg:w-[600px]"
       content-padding="p-6 pb-24 lg:pb-6"
     >
-      <!-- Search -->
-      <div class="mb-4">
-        <input
-          v-model="exerciseSearch"
-          type="text"
-          placeholder="Search exercises..."
-          class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary"
-        />
-      </div>
-
-      <!-- Exercise Library List -->
-      <div class="space-y-2 max-h-[50vh] overflow-y-auto">
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-4">
         <button
-          v-for="exercise in filteredLibraryExercises"
-          :key="exercise.id"
-          @click="addExerciseFromLibrary(exercise)"
-          class="w-full bg-[#2a2a2a] hover:bg-[#3a3a3a] border border-[#3a3a3a] rounded-xl p-4 text-left transition-colors"
+          @click="addModalTab = 'exercises'"
+          class="flex-1 px-4 py-2 rounded-xl font-semibold transition-all"
+          :class="addModalTab === 'exercises' ? 'bg-primary text-white' : 'bg-[#2a2a2a] text-gray-400 hover:text-white'"
         >
-          <div class="font-semibold mb-1">{{ exercise.name }}</div>
-          <div class="text-sm text-gray-500">
-            {{ exercise.muscles.join(', ') }} • {{ exercise.equipment }}
-          </div>
+          Exercises
+        </button>
+        <button
+          @click="addModalTab = 'templates'"
+          :disabled="workoutStarted"
+          class="flex-1 px-4 py-2 rounded-xl font-semibold transition-all"
+          :class="addModalTab === 'templates' ? 'bg-primary text-white' : 'bg-[#2a2a2a] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed'"
+        >
+          Templates
         </button>
       </div>
 
-      <div v-if="filteredLibraryExercises.length === 0" class="text-center py-8 text-gray-500">
-        <div class="text-sm">No exercises found</div>
+      <!-- Exercises Tab -->
+      <div v-if="addModalTab === 'exercises'">
+        <!-- Search -->
+        <div class="mb-4">
+          <input
+            v-model="exerciseSearch"
+            type="text"
+            placeholder="Search exercises..."
+            class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary"
+          />
+        </div>
+
+        <!-- Exercise Library List -->
+        <div class="space-y-2 max-h-[50vh] overflow-y-auto">
+          <button
+            v-for="exercise in filteredLibraryExercises"
+            :key="exercise.id"
+            @click="addExerciseFromLibrary(exercise)"
+            class="w-full bg-[#2a2a2a] hover:bg-[#3a3a3a] border border-[#3a3a3a] rounded-xl p-4 text-left transition-colors"
+          >
+            <div class="font-semibold mb-1">{{ exercise.name }}</div>
+            <div class="text-sm text-gray-500">
+              {{ exercise.muscles.join(', ') }} • {{ exercise.equipment }}
+            </div>
+          </button>
+        </div>
+
+        <div v-if="filteredLibraryExercises.length === 0" class="text-center py-8 text-gray-500">
+          <div class="text-sm">No exercises found</div>
+        </div>
+      </div>
+
+      <!-- Templates Tab -->
+      <div v-if="addModalTab === 'templates'">
+        <!-- Search -->
+        <div class="mb-4">
+          <input
+            v-model="templateSearch"
+            type="text"
+            placeholder="Search templates..."
+            class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary"
+          />
+        </div>
+
+        <!-- Templates List -->
+        <div class="space-y-2 max-h-[50vh] overflow-y-auto">
+          <button
+            v-for="template in filteredTemplates"
+            :key="template.id"
+            @click="addTemplateToWorkout(template)"
+            class="w-full bg-[#2a2a2a] hover:bg-[#3a3a3a] border border-[#3a3a3a] rounded-xl p-4 text-left transition-colors"
+          >
+            <div class="font-semibold mb-1">{{ template.name }}</div>
+            <div v-if="template.description" class="text-sm text-gray-400 mb-1">{{ template.description }}</div>
+            <div class="text-xs text-gray-500">
+              {{ template.exercises.length }} exercise{{ template.exercises.length !== 1 ? 's' : '' }}
+            </div>
+          </button>
+        </div>
+
+        <div v-if="filteredTemplates.length === 0 && !templatesLoading" class="text-center py-8 text-gray-500">
+          <div class="text-sm">{{ templateSearch ? 'No templates found' : 'No templates created yet' }}</div>
+          <router-link to="/library" class="text-primary text-sm mt-2 inline-block">
+            Create a template →
+          </router-link>
+        </div>
       </div>
     </BaseModal>
 
@@ -393,6 +451,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseModal from '../components/BaseModal.vue'
 import FloatingActionButton from '../components/FloatingActionButton.vue'
 import { useExercises } from '../composables/useExercises'
+import { useTemplates } from '../composables/useTemplates'
 import { useToast } from '../composables/useToast'
 import { useWorkouts } from '../composables/useWorkouts'
 import api from '../services/api'
@@ -400,6 +459,7 @@ import { convertWeight, formatVolume } from '../utils/formatters'
 
 // Use composables
 const { exercises: exerciseLibrary, fetchExercises } = useExercises()
+const { templates, fetchTemplates, loading: templatesLoading } = useTemplates()
 const { createWorkout, loading: workoutLoading } = useWorkouts()
 const { success, error } = useToast()
 
@@ -425,6 +485,8 @@ const showAddExercise = ref(false)
 const showFinishModal = ref(false)
 const showNotesModal = ref(false)
 const exerciseSearch = ref('')
+const templateSearch = ref('')
+const addModalTab = ref('exercises') // 'exercises' or 'templates'
 const editingExerciseForNotes = ref(null)
 const notesText = ref('')
 const collapsedExercises = ref(new Set())
@@ -504,6 +566,23 @@ const filteredLibraryExercises = computed(() => {
     ex.name.toLowerCase().includes(query) ||
     ex.muscles.some(m => m.toLowerCase().includes(query)) ||
     ex.equipment.toLowerCase().includes(query)
+  )
+})
+
+const filteredTemplates = computed(() => {
+  if (!templateSearch.value) return templates.value
+
+  const query = templateSearch.value.toLowerCase()
+  return templates.value.filter(t =>
+    t.name.toLowerCase().includes(query) ||
+    (t.description && t.description.toLowerCase().includes(query))
+  )
+})
+
+const workoutStarted = computed(() => {
+  return workoutExercises.value.length > 0 && (
+    setsCompleted.value > 0 || 
+    workoutStartTime.value !== null
   )
 })
 
@@ -680,6 +759,39 @@ const addExerciseFromLibrary = (libraryExercise) => {
   exerciseSearch.value = ''
 }
 
+const addTemplateToWorkout = (template) => {
+  // Start timer when first exercise is added
+  if (workoutExercises.value.length === 0) {
+    startTimer()
+  }
+
+  // Add all exercises from template to workout
+  template.exercises.forEach((templateEx) => {
+    const newExercise = {
+      id: Date.now() + Math.random(), // Unique temporary ID
+      exerciseId: templateEx.exercise_id,
+      name: templateEx.exercise_name,
+      equipment: templateEx.equipment,
+      muscles: templateEx.muscles || [],
+      notes: templateEx.notes || '',
+      unit: templateEx.sets[0]?.unit || userWeightUnit.value,
+      sets: templateEx.sets.map(set => ({
+        weight: set.weight || 0,
+        reps: set.reps || 0,
+        completed: false,
+        unit: set.unit || userWeightUnit.value
+      }))
+    }
+    
+    workoutExercises.value.push(newExercise)
+  })
+
+  showAddExercise.value = false
+  templateSearch.value = ''
+  addModalTab.value = 'exercises' // Reset to exercises tab
+  success(`Added ${template.exercises.length} exercises from "${template.name}"`)
+}
+
 const openNotesModal = (exercise) => {
   editingExerciseForNotes.value = exercise
   notesText.value = exercise.notes || ''
@@ -765,8 +877,11 @@ onMounted(async () => {
     // Load saved workout from localStorage first
     loadWorkoutFromStorage()
 
-    // Fetch exercise library from backend
-    await fetchExercises()
+    // Fetch exercise library and templates from backend
+    await Promise.all([
+      fetchExercises(),
+      fetchTemplates()
+    ])
 
     // Fetch user profile
     try {
