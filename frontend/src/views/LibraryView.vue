@@ -112,15 +112,42 @@
 
     <!-- Templates Tab Content -->
     <div v-if="activeTab === 'templates'">
+      <div class="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 pb-24">
+        <button
+          v-for="template in filteredTemplates"
+          :key="template.id"
+          @click="editTemplate(template.id)"
+          class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 hover:border-primary transition-colors text-left w-full"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="font-semibold">{{ template.name }}</h3>
+            <button
+              @click.stop="openDeleteTemplate(template)"
+              class="text-gray-500 hover:text-red-500 transition-colors p-1"
+              title="Delete template"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+          <p v-if="template.description" class="text-sm text-gray-500 mb-2">{{ template.description }}</p>
+          <div class="text-xs text-gray-600">
+            {{ template.exercises.length }} exercise{{ template.exercises.length !== 1 ? 's' : '' }}
+          </div>
+        </button>
+      </div>
+
       <EmptyState
+        v-if="filteredTemplates.length === 0 && !loading"
         :icon="BookOpenIcon"
-        title="Workout Templates"
-        description="Coming soon"
+        title="No templates found"
+        :description="searchQuery ? 'Try a different search term' : 'Create your first workout template'"
       />
     </div>
 
     <!-- Split Pill FAB -->
-    <FloatingActionButton v-if="activeTab !== 'templates'" @click="openCreateModal">
+    <FloatingActionButton @click="openCreateModal">
       <template #default>
         <span class="text-3xl lg:text-4xl">+</span>
       </template>
@@ -352,6 +379,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { BookOpenIcon } from '@heroicons/vue/24/outline'
 import BaseModal from '../components/BaseModal.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -360,8 +388,10 @@ import PageHeader from '../components/PageHeader.vue'
 import { useEquipment } from '../composables/useEquipment'
 import { useExercises } from '../composables/useExercises'
 import { useMuscles } from '../composables/useMuscles'
+import { useTemplates } from '../composables/useTemplates'
 import { useToast } from '../composables/useToast'
 
+const router = useRouter()
 const { success, error: showError } = useToast()
 
 const activeTab = ref('exercises')
@@ -405,7 +435,15 @@ const {
   deleteMuscle
 } = useMuscles()
 
-const saving = computed(() => exercisesLoading.value || equipmentLoading.value || musclesLoading.value)
+const {
+  templates,
+  loading: templatesLoading,
+  fetchTemplates,
+  deleteTemplate: deleteTemplateApi
+} = useTemplates()
+
+const saving = computed(() => exercisesLoading.value || equipmentLoading.value || musclesLoading.value || templatesLoading.value)
+const itemToDelete = ref(null)
 
 const exerciseFormData = ref({
   name: '',
@@ -450,6 +488,16 @@ const filteredEquipment = computed(() => {
   )
 })
 
+const filteredTemplates = computed(() => {
+  if (!searchQuery.value) return templates.value
+
+  const query = searchQuery.value.toLowerCase()
+  return templates.value.filter(t =>
+    t.name.toLowerCase().includes(query) ||
+    (t.description && t.description.toLowerCase().includes(query))
+  )
+})
+
 const openCreateModal = () => {
   if (activeTab.value === 'exercises') {
     modalMode.value = 'exercise'
@@ -466,6 +514,10 @@ const openCreateModal = () => {
     equipmentFormData.value = {
       name: ''
     }
+  } else if (activeTab.value === 'templates') {
+    // Navigate to template form page
+    router.push('/library/templates/new')
+    return
   } else {
     modalMode.value = 'muscle'
     editingMuscle.value = null
@@ -601,6 +653,16 @@ const deleteMuscleHandler = async () => {
   showDeleteModal.value = true
 }
 
+const editTemplate = (templateId) => {
+  router.push(`/library/templates/${templateId}`)
+}
+
+const openDeleteTemplate = (template) => {
+  itemToDelete.value = template
+  deleteMode.value = 'template'
+  showDeleteModal.value = true
+}
+
 const confirmDelete = async () => {
   errorMessage.value = ''
 
@@ -611,12 +673,16 @@ const confirmDelete = async () => {
     } else if (deleteMode.value === 'equipment') {
       await deleteEquipment(editingEquipment.value.id)
       success('Equipment deleted successfully')
+    } else if (deleteMode.value === 'template') {
+      await deleteTemplateApi(itemToDelete.value.id)
+      success('Template deleted successfully')
     } else {
       await deleteMuscle(editingMuscle.value.id)
       success('Muscle deleted successfully')
     }
     showDeleteModal.value = false
     closeModal()
+    itemToDelete.value = null
   } catch (err) {
     errorMessage.value = err.message || `Failed to delete ${deleteMode.value}. Please try again.`
     showDeleteModal.value = false
@@ -624,12 +690,13 @@ const confirmDelete = async () => {
 }
 
 onMounted(async () => {
-  // Fetch exercises, equipment, and muscles from the backend
+  // Fetch exercises, equipment, muscles, and templates from the backend
   try {
     await Promise.all([
       fetchExercises(),
       fetchEquipment(),
-      fetchMuscles()
+      fetchMuscles(),
+      fetchTemplates()
     ])
   } catch (err) {
     console.error('Failed to load data:', err)

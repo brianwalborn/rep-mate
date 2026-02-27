@@ -4,6 +4,7 @@ import LibraryView from '../views/LibraryView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import ProgressView from '../views/ProgressView.vue'
+import TemplateFormView from '../views/TemplateFormView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,6 +31,12 @@ const router = createRouter({
       path: '/library',
       name: 'library',
       component: LibraryView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/library/templates/:id',
+      name: 'template-form',
+      component: TemplateFormView,
       meta: { requiresAuth: true }
     },
     {
