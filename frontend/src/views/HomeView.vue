@@ -259,7 +259,7 @@
         <!-- Finish Workout Button -->
         <button
           v-if="workoutExercises.length > 0"
-          @click="showFinishModal = true"
+          @click="openFinishModal"
           class="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-transform flex items-center justify-center"
           title="Finish Workout"
         >
@@ -379,9 +379,38 @@
       v-model="showFinishModal"
       title="Finish Workout?"
     >
-      <p class="text-gray-400">
-        This will save your workout with {{ setsCompleted }} completed sets and {{ formatVolume(totalVolume) }} lbs total volume.
-      </p>
+      <div class="space-y-4">
+        <p class="text-gray-400">
+          This will save your workout with {{ setsCompleted }} completed sets and {{ formatVolume(totalVolume) }} lbs total volume.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-2">Date</label>
+            <input
+              v-model="finishDate"
+              type="date"
+              class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-2">Start Time</label>
+            <input
+              v-model="finishStartTime"
+              type="time"
+              class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-2">End Time</label>
+            <input
+              v-model="finishEndTime"
+              type="time"
+              class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+      </div>
 
       <template #footer>
         <div class="p-6 pb-24 lg:pb-6">
@@ -490,6 +519,9 @@ const addModalTab = ref('exercises') // 'exercises' or 'templates'
 const editingExerciseForNotes = ref(null)
 const notesText = ref('')
 const collapsedExercises = ref(new Set())
+const finishDate = ref('')
+const finishStartTime = ref('')
+const finishEndTime = ref('')
 
 // Timer state
 const duration = ref(0) // Duration in minutes
@@ -581,7 +613,7 @@ const filteredTemplates = computed(() => {
 
 const workoutStarted = computed(() => {
   return workoutExercises.value.length > 0 && (
-    setsCompleted.value > 0 || 
+    setsCompleted.value > 0 ||
     workoutStartTime.value !== null
   )
 })
@@ -782,7 +814,7 @@ const addTemplateToWorkout = (template) => {
         unit: set.unit || userWeightUnit.value
       }))
     }
-    
+
     workoutExercises.value.push(newExercise)
   })
 
@@ -828,14 +860,57 @@ const clearNotes = () => {
   notesText.value = ''
 }
 
+const toDateInputValue = (dateValue) => {
+  const date = new Date(dateValue)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const toTimeInputValue = (dateValue) => {
+  const date = new Date(dateValue)
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+const combineDateAndTime = (dateString, timeString) => {
+  const [year, month, day] = dateString.split('-').map(Number)
+  const [hours, minutes] = timeString.split(':').map(Number)
+  return new Date(year, month - 1, day, hours, minutes)
+}
+
+const openFinishModal = () => {
+  const now = new Date()
+  const startDate = workoutStartTime.value
+    ? new Date(workoutStartTime.value)
+    : new Date(now.getTime() - Math.ceil(duration.value) * 60000)
+
+  finishDate.value = toDateInputValue(startDate)
+  finishStartTime.value = toTimeInputValue(startDate)
+  finishEndTime.value = toTimeInputValue(now)
+  showFinishModal.value = true
+}
+
 const finishWorkout = async () => {
   try {
+    const startDateTime = combineDateAndTime(finishDate.value, finishStartTime.value)
+    const endDateTime = combineDateAndTime(finishDate.value, finishEndTime.value)
+
+    if (endDateTime <= startDateTime) {
+      error('End time must be after start time.')
+      return
+    }
+
     // Stop the timer and get final duration
     stopTimer()
-    const finalDuration = Math.ceil(duration.value) // Round up to nearest minute
+    const finalDuration = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / 60000)
 
     const workoutData = {
-      date: new Date().toISOString(),
+      date: startDateTime.toISOString(),
+      start_time: startDateTime.toISOString(),
+      end_time: endDateTime.toISOString(),
       duration: finalDuration,
       exercises: workoutExercises.value.map(ex => ({
         exercise_id: ex.exerciseId, // Use the real exercise ID from database

@@ -17,8 +17,16 @@ class WorkoutExerciseCreate(BaseModel):
 
 class WorkoutCreate(BaseModel):
     date: datetime  # Accept ISO datetime string from frontend
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     duration: Optional[int] = 0  # Duration in minutes
     exercises: List[WorkoutExerciseCreate]
+
+class WorkoutUpdate(BaseModel):
+    date: Optional[datetime] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    duration: Optional[int] = None
 
 class SetOut(BaseModel):
     id: str
@@ -45,6 +53,8 @@ class WorkoutExerciseOut(BaseModel):
 class WorkoutOut(BaseModel):
     id: str
     date: datetime
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     duration: int
     exercises: List[WorkoutExerciseOut]
 
