@@ -26,9 +26,9 @@ def upgrade() -> None:
     conn = op.get_bind()
     rows = conn.execute(sa.text("SELECT id, date, duration FROM workouts")).fetchall()
     for row in rows:
-        start_time = row.date
         duration = row.duration or 0
-        end_time = start_time + timedelta(minutes=duration)
+        end_time = row.date
+        start_time = end_time - timedelta(minutes=duration)
         conn.execute(
             sa.text(
                 """
