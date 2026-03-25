@@ -95,6 +95,68 @@
         </div>
       </div>
 
+      <div class="p-6 border-b border-[#2a2a2a] space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="text-sm font-semibold text-white">Workout Time</div>
+          <button
+            v-if="!isEditingTimes"
+            @click.stop="startEditingTimes"
+            class="text-sm text-primary hover:text-primary-light transition-colors"
+          >
+            Edit
+          </button>
+        </div>
+
+        <div v-if="!isEditingTimes" class="text-sm text-gray-400">
+          {{ formatDate(getWorkoutStartTime(selectedWorkout)) }} · {{ formatTime(getWorkoutStartTime(selectedWorkout)) }} - {{ formatTime(getWorkoutEndTime(selectedWorkout)) }}
+        </div>
+
+        <div v-else class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs text-gray-500 mb-2">Date</label>
+              <input
+                v-model="editDate"
+                type="date"
+                class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-2">Start Time</label>
+              <input
+                v-model="editStartTime"
+                type="time"
+                class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-2">End Time</label>
+              <input
+                v-model="editEndTime"
+                type="time"
+                class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <button
+              @click.stop="cancelEditingTimes"
+              class="flex-1 bg-[#2a2a2a] text-white font-semibold py-2 rounded-xl hover:bg-[#3a3a3a] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              @click.stop="saveWorkoutTimes"
+              :disabled="savingTimes"
+              class="flex-1 bg-primary text-white font-semibold py-2 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {{ savingTimes ? 'Saving...' : 'Save Time' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Modal Exercise List -->
       <div class="p-6 pb-20 lg:pb-8 space-y-4">
         <div
@@ -189,11 +251,16 @@ import { useWorkouts } from '../composables/useWorkouts'
 import api from '../services/api'
 import { convertWeight, formatDate, formatTime, formatVolume, formatWeight, getTotalSets, getTotalVolume, getUniqueMuscles } from '../utils/formatters'
 
-const { workouts, loading, fetchWorkouts, deleteWorkout } = useWorkouts()
+const { workouts, loading, fetchWorkouts, updateWorkout, deleteWorkout } = useWorkouts()
 const { success, error } = useToast()
 const selectedWorkout = ref(null)
 const showDeleteConfirm = ref(false)
 const userWeightUnit = ref('lbs')
+const isEditingTimes = ref(false)
+const editDate = ref('')
+const editStartTime = ref('')
+const editEndTime = ref('')
+const savingTimes = ref(false)
 
 const sortedWorkouts = computed(() => {
   return [...workouts.value].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -202,6 +269,85 @@ const sortedWorkouts = computed(() => {
 const viewWorkout = (workout) => {
   selectedWorkout.value = workout
   showDeleteConfirm.value = false
+  isEditingTimes.value = false
+}
+
+const getWorkoutStartTime = (workout) => {
+  return workout.start_time || workout.date
+}
+
+const getWorkoutEndTime = (workout) => {
+  if (workout.end_time) return workout.end_time
+  const start = new Date(getWorkoutStartTime(workout))
+  return new Date(start.getTime() + (workout.duration || 0) * 60000).toISOString()
+}
+
+const toDateInputValue = (dateValue) => {
+  const date = new Date(dateValue)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const toTimeInputValue = (dateValue) => {
+  const date = new Date(dateValue)
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+const combineDateAndTime = (dateString, timeString) => {
+  const [year, month, day] = dateString.split('-').map(Number)
+  const [hours, minutes] = timeString.split(':').map(Number)
+  return new Date(year, month - 1, day, hours, minutes)
+}
+
+const startEditingTimes = () => {
+  if (!selectedWorkout.value) return
+  const startDateTime = new Date(getWorkoutStartTime(selectedWorkout.value))
+  const endDateTime = new Date(getWorkoutEndTime(selectedWorkout.value))
+
+  editDate.value = toDateInputValue(startDateTime)
+  editStartTime.value = toTimeInputValue(startDateTime)
+  editEndTime.value = toTimeInputValue(endDateTime)
+  isEditingTimes.value = true
+}
+
+const cancelEditingTimes = () => {
+  isEditingTimes.value = false
+}
+
+const saveWorkoutTimes = async () => {
+  if (!selectedWorkout.value) return
+
+  const startDateTime = combineDateAndTime(editDate.value, editStartTime.value)
+  const endDateTime = combineDateAndTime(editDate.value, editEndTime.value)
+
+  if (endDateTime <= startDateTime) {
+    error('End time must be after start time.')
+    return
+  }
+
+  try {
+    savingTimes.value = true
+    const duration = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / 60000)
+    const updatedWorkout = await updateWorkout(selectedWorkout.value.id, {
+      date: startDateTime.toISOString(),
+      start_time: startDateTime.toISOString(),
+      end_time: endDateTime.toISOString(),
+      duration
+    })
+
+    selectedWorkout.value = updatedWorkout
+    isEditingTimes.value = false
+    success('Workout time updated successfully')
+  } catch (err) {
+    console.error('Failed to update workout time:', err)
+    error('Failed to update workout time. Please try again.')
+  } finally {
+    savingTimes.value = false
+  }
 }
 
 const getTotalVolumeInUserUnit = (workout) => {
@@ -239,7 +385,7 @@ const handleDeleteWorkout = async () => {
 
 onMounted(async () => {
   fetchWorkouts()
-  
+
   // Load user profile to get weight unit preference
   try {
     const response = await api.getProfile()

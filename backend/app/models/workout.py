@@ -9,6 +9,8 @@ class Workout(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id"))
     date = Column(DateTime, nullable=False)  # Changed from Date to DateTime
+    start_time = Column(DateTime, nullable=True)
+    end_time = Column(DateTime, nullable=True)
     duration = Column(Integer, default=0)  # Duration in minutes
 
     exercises = relationship(
