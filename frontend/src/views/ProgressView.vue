@@ -276,14 +276,25 @@ const getWorkoutStartTime = (workout) => {
   return workout.start_time || workout.date
 }
 
+const parseWorkoutDateTime = (dateValue) => {
+  if (
+    typeof dateValue === 'string' &&
+    !dateValue.includes('Z') &&
+    !dateValue.match(/[+-]\d{2}:\d{2}$/)
+  ) {
+    return new Date(`${dateValue}Z`)
+  }
+  return new Date(dateValue)
+}
+
 const getWorkoutEndTime = (workout) => {
   if (workout.end_time) return workout.end_time
-  const start = new Date(getWorkoutStartTime(workout))
-  return new Date(start.getTime() + (workout.duration || 0) * 60000).toISOString()
+  const start = parseWorkoutDateTime(getWorkoutStartTime(workout))
+  return new Date(start.getTime() + (workout.duration || 0) * 60000)
 }
 
 const toDateInputValue = (dateValue) => {
-  const date = new Date(dateValue)
+  const date = parseWorkoutDateTime(dateValue)
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
@@ -291,7 +302,7 @@ const toDateInputValue = (dateValue) => {
 }
 
 const toTimeInputValue = (dateValue) => {
-  const date = new Date(dateValue)
+  const date = parseWorkoutDateTime(dateValue)
   const hours = String(date.getHours()).padStart(2, '0')
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${hours}:${minutes}`
@@ -305,8 +316,8 @@ const combineDateAndTime = (dateString, timeString) => {
 
 const startEditingTimes = () => {
   if (!selectedWorkout.value) return
-  const startDateTime = new Date(getWorkoutStartTime(selectedWorkout.value))
-  const endDateTime = new Date(getWorkoutEndTime(selectedWorkout.value))
+  const startDateTime = parseWorkoutDateTime(getWorkoutStartTime(selectedWorkout.value))
+  const endDateTime = parseWorkoutDateTime(getWorkoutEndTime(selectedWorkout.value))
 
   editDate.value = toDateInputValue(startDateTime)
   editStartTime.value = toTimeInputValue(startDateTime)

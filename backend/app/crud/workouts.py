@@ -8,18 +8,18 @@ def _minutes_between(start_time, end_time) -> int:
     return int((elapsed_seconds + 59) // 60)
 
 def create_workout(db: Session, payload, user_id: str):
-    start_time = payload.start_time or payload.date
-    if payload.end_time:
-        end_time = payload.end_time
+    end_time = payload.end_time or payload.date
+    if payload.start_time:
+        start_time = payload.start_time
     else:
-        end_time = start_time + timedelta(minutes=payload.duration or 0)
+        start_time = end_time - timedelta(minutes=payload.duration or 0)
 
     if end_time < start_time:
         raise ValueError("End time cannot be before start time")
 
     workout = Workout(
         user_id=user_id,
-        date=start_time,
+        date=end_time,
         start_time=start_time,
         end_time=end_time,
         duration=_minutes_between(start_time, end_time)
@@ -58,19 +58,26 @@ def update_workout(db: Session, workout_id: str, payload, user_id: str):
     if not workout:
         return None
 
-    start_time = payload.start_time or workout.start_time or payload.date or workout.date
-    end_time = payload.end_time or workout.end_time
+    existing_end_time = workout.end_time or workout.date
+    existing_start_time = workout.start_time or (existing_end_time - timedelta(minutes=workout.duration or 0))
+    duration_minutes = payload.duration if payload.duration is not None else (workout.duration or 0)
 
-    if end_time is None:
-        if payload.duration is not None:
-            end_time = start_time + timedelta(minutes=payload.duration)
+    end_time = payload.end_time or payload.date or existing_end_time
+
+    if payload.start_time:
+        start_time = payload.start_time
+        if not payload.end_time and payload.date is None:
+            end_time = start_time + timedelta(minutes=duration_minutes)
+    else:
+        if payload.end_time or payload.date is not None or payload.duration is not None:
+            start_time = end_time - timedelta(minutes=duration_minutes)
         else:
-            end_time = start_time + timedelta(minutes=workout.duration or 0)
+            start_time = existing_start_time
 
     if end_time < start_time:
         raise ValueError("End time cannot be before start time")
 
-    workout.date = start_time
+    workout.date = end_time
     workout.start_time = start_time
     workout.end_time = end_time
     workout.duration = _minutes_between(start_time, end_time)
