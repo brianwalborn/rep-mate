@@ -45,7 +45,7 @@
     </div>
 
     <!-- Exercise List -->
-    <div class="px-5 lg:px-8 space-y-4 pb-24">
+    <div class="px-5 lg:px-8 pb-24">
       <div v-if="templateExercises.length === 0" class="text-center py-12 text-gray-500">
         <svg class="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -54,13 +54,28 @@
         <p class="text-sm mt-1">Click the + button to add exercises</p>
       </div>
 
+      <draggable
+        v-model="templateExercises"
+        item-key="id"
+        handle=".drag-handle"
+        :animation="150"
+        ghost-class="opacity-30"
+      >
+        <template #item="{ element: exercise }">
       <div
-        v-for="(exercise, index) in templateExercises"
         :key="exercise.id"
-        class="bg-[#1a1a1a] rounded-[20px] p-5 border-2 border-[#2a2a2a]"
+        class="bg-[#1a1a1a] rounded-[20px] p-5 border-2 border-[#2a2a2a] mb-4"
       >
         <!-- Exercise Header -->
-        <div class="flex justify-between items-start" :class="{ 'mb-4': !isCollapsed(exercise.id) }">
+        <div class="flex items-start gap-2" :class="{ 'mb-4': !isCollapsed(exercise.id) }">
+          <!-- Drag Handle -->
+          <div class="drag-handle cursor-grab active:cursor-grabbing text-gray-600 hover:text-gray-400 pt-1.5 flex-shrink-0 touch-none select-none">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+              <circle cx="5" cy="3.5" r="1.5"/><circle cx="11" cy="3.5" r="1.5"/>
+              <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+              <circle cx="5" cy="12.5" r="1.5"/><circle cx="11" cy="12.5" r="1.5"/>
+            </svg>
+          </div>
           <button
             @click="toggleCollapse(exercise.id)"
             class="flex-1 text-left"
@@ -171,6 +186,8 @@
           </button>
         </div>
       </div>
+        </template>
+      </draggable>
     </div>
 
     <!-- FloatingActionButton for Save/Add -->
@@ -283,6 +300,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import draggable from 'vuedraggable'
 import { useRoute, useRouter } from 'vue-router'
 import { BookOpenIcon } from '@heroicons/vue/24/outline'
 import BaseModal from '../components/BaseModal.vue'
