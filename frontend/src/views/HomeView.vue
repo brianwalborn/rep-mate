@@ -95,15 +95,30 @@
 
     <!-- Exercise List -->
     <div class="px-5 lg:px-8 space-y-4">
-      <div class="lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 space-y-4">
+      <draggable
+        v-model="workoutExercises"
+        item-key="id"
+        handle=".drag-handle"
+        :animation="150"
+        ghost-class="opacity-30"
+        class="lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 space-y-4"
+      >
+        <template #item="{ element: exercise }">
       <div
-        v-for="(exercise, index) in workoutExercises"
         :key="exercise.id"
         class="bg-[#1a1a1a] rounded-[20px] p-5 border-2 transition-all"
         :class="isExerciseCompleted(exercise) ? 'border-primary bg-primary/5' : 'border-[#2a2a2a]'"
       >
         <!-- Exercise Header -->
-        <div class="flex justify-between items-start" :class="{ 'mb-4': !isCollapsed(exercise.id) }">
+        <div class="flex items-start gap-2" :class="{ 'mb-4': !isCollapsed(exercise.id) }">
+          <!-- Drag Handle -->
+          <div class="drag-handle cursor-grab active:cursor-grabbing text-gray-600 hover:text-gray-400 pt-1.5 flex-shrink-0 touch-none select-none">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+              <circle cx="5" cy="3.5" r="1.5"/><circle cx="11" cy="3.5" r="1.5"/>
+              <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+              <circle cx="5" cy="12.5" r="1.5"/><circle cx="11" cy="12.5" r="1.5"/>
+            </svg>
+          </div>
           <button
             @click="toggleCollapse(exercise.id)"
             class="flex-1 text-left"
@@ -240,8 +255,8 @@
           </button>
         </div>
       </div>
-
-      </div>
+        </template>
+      </draggable>
 
       <!-- Empty State -->
       <div v-if="workoutExercises.length === 0" class="text-center py-16 text-gray-500 lg:col-span-2">
@@ -477,6 +492,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import draggable from 'vuedraggable'
 import BaseModal from '../components/BaseModal.vue'
 import FloatingActionButton from '../components/FloatingActionButton.vue'
 import { useExercises } from '../composables/useExercises'
