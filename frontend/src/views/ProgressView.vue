@@ -26,8 +26,8 @@
       >
         <div class="flex items-start justify-between mb-4">
           <div>
-            <h3 class="text-lg font-semibold mb-1">{{ formatDate(workout.date) }}</h3>
-            <div class="text-sm text-gray-500">{{ formatTime(workout.date) }}</div>
+            <h3 class="text-lg font-semibold mb-1">{{ formatDate(getWorkoutStartTime(workout)) }}</h3>
+            <div class="text-sm text-gray-500">{{ formatTime(getWorkoutStartTime(workout)) }}</div>
           </div>
           <div class="text-right">
             <div class="text-2xl font-bold text-primary">{{ workout.duration }}m</div>
@@ -70,8 +70,8 @@
     >
       <template #header>
         <div>
-          <h2 class="text-2xl font-bold">{{ formatDate(selectedWorkout.date) }}</h2>
-          <div class="text-sm text-gray-500 mt-1">{{ formatTime(selectedWorkout.date) }}</div>
+          <h2 class="text-2xl font-bold">{{ formatDate(getWorkoutStartTime(selectedWorkout)) }}</h2>
+          <div class="text-sm text-gray-500 mt-1">{{ formatTime(getWorkoutStartTime(selectedWorkout)) }}</div>
         </div>
       </template>
 
