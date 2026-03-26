@@ -3,7 +3,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 import os
 
-load_dotenv()
+def _load_env_file() -> None:
+    # In Docker we usually get env vars directly; avoid failing startup if .env can't be read.
+    if os.getenv("DATABASE_URL"):
+        return
+
+    try:
+        load_dotenv(dotenv_path=".env")
+    except OSError:
+        pass
+
+_load_env_file()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
