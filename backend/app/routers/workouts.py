@@ -4,15 +4,20 @@ from app.database import get_db
 from app.models.exercise import Exercise
 from app.models.workout import Workout
 from app.schemas.workout import WorkoutCreate, WorkoutOut, WorkoutUpdate
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
 @router.get("", response_model=list[WorkoutOut])
-def get_workouts(user = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_workouts(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=100),
+    user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     # Order by date descending (newest first)
-    workouts = db.query(Workout).filter(Workout.user_id == user.id).order_by(Workout.date.desc()).all()
+    workouts = db.query(Workout).filter(Workout.user_id == user.id).order_by(Workout.date.desc()).offset(skip).limit(limit).all()
 
     # Enrich workout exercises with muscle data
     for workout in workouts:

@@ -19,7 +19,7 @@
     <!-- Workout List -->
     <div v-else class="space-y-4 lg:max-w-4xl pb-8">
       <div
-        v-for="workout in sortedWorkouts"
+        v-for="workout in workouts"
         :key="workout.id"
         @click="viewWorkout(workout)"
         class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 hover:border-primary/50 transition-colors cursor-pointer"
@@ -59,6 +59,14 @@
             {{ muscle }}
           </div>
         </div>
+      </div>
+
+      <!-- Infinite scroll sentinel -->
+      <div ref="scrollSentinel" class="h-1"></div>
+
+      <!-- Load more indicator -->
+      <div v-if="loadingMore" class="flex justify-center py-4">
+        <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     </div>
 
@@ -241,7 +249,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { ChartBarIcon } from '@heroicons/vue/24/outline'
 import BaseModal from '../components/BaseModal.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -251,9 +259,17 @@ import { useWorkouts } from '../composables/useWorkouts'
 import api from '../services/api'
 import { convertWeight, formatDate, formatTime, formatVolume, formatWeight, getTotalSets, getTotalVolume, getUniqueMuscles } from '../utils/formatters'
 
-const { workouts, loading, fetchWorkouts, updateWorkout, deleteWorkout } = useWorkouts()
+const { workouts, loading, loadingMore, hasMore, fetchWorkouts, fetchMoreWorkouts, updateWorkout, deleteWorkout } = useWorkouts()
 const { success, error } = useToast()
+const scrollSentinel = ref(null)
+let scrollObserver = null
 const selectedWorkout = ref(null)
+
+watch(scrollSentinel, (element) => {
+  if (element && scrollObserver) {
+    scrollObserver.observe(element)
+  }
+})
 const showDeleteConfirm = ref(false)
 const userWeightUnit = ref('lbs')
 const isEditingTimes = ref(false)
@@ -261,10 +277,6 @@ const editDate = ref('')
 const editStartTime = ref('')
 const editEndTime = ref('')
 const savingTimes = ref(false)
-
-const sortedWorkouts = computed(() => {
-  return [...workouts.value].sort((a, b) => new Date(b.date) - new Date(a.date))
-})
 
 const viewWorkout = (workout) => {
   selectedWorkout.value = workout
@@ -394,8 +406,21 @@ const handleDeleteWorkout = async () => {
   }
 }
 
+onUnmounted(() => {
+  scrollObserver?.disconnect()
+})
+
 onMounted(async () => {
-  fetchWorkouts()
+  scrollObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && hasMore.value) {
+        fetchMoreWorkouts()
+      }
+    },
+    { threshold: 0.1 }
+  )
+
+  await fetchWorkouts()
 
   // Load user profile to get weight unit preference
   try {

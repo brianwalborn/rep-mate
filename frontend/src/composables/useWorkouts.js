@@ -1,18 +1,25 @@
 import { ref } from 'vue'
 import api from '../services/api'
 
+const PAGE_SIZE = 10
+
 export function useWorkouts() {
   const workouts = ref([])
   const currentWorkout = ref(null)
   const loading = ref(false)
+  const loadingMore = ref(false)
+  const hasMore = ref(true)
   const error = ref(null)
 
   const fetchWorkouts = async () => {
     loading.value = true
     error.value = null
+    workouts.value = []
+    hasMore.value = true
     try {
-      const response = await api.getWorkouts()
+      const response = await api.getWorkouts(0, PAGE_SIZE)
       workouts.value = response.data
+      hasMore.value = response.data.length === PAGE_SIZE
       return response.data
     } catch (err) {
       error.value = err.message || 'Failed to load workouts'
@@ -20,6 +27,21 @@ export function useWorkouts() {
       throw err
     } finally {
       loading.value = false
+    }
+  }
+
+  const fetchMoreWorkouts = async () => {
+    if (loadingMore.value || !hasMore.value) return
+    loadingMore.value = true
+    try {
+      const response = await api.getWorkouts(workouts.value.length, PAGE_SIZE)
+      workouts.value.push(...response.data)
+      hasMore.value = response.data.length === PAGE_SIZE
+    } catch (err) {
+      error.value = err.message || 'Failed to load more workouts'
+      console.error('Failed to fetch more workouts:', err)
+    } finally {
+      loadingMore.value = false
     }
   }
 
@@ -96,8 +118,11 @@ export function useWorkouts() {
     workouts,
     currentWorkout,
     loading,
+    loadingMore,
+    hasMore,
     error,
     fetchWorkouts,
+    fetchMoreWorkouts,
     fetchWorkout,
     createWorkout,
     updateWorkout,
