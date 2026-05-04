@@ -50,8 +50,8 @@ export default {
   },
 
   // Workouts
-  getWorkouts() {
-    return api.get('/workouts')
+  getWorkouts(skip = 0, limit = 10) {
+    return api.get('/workouts', { params: { skip, limit } })
   },
   getWorkout(id) {
     return api.get(`/workouts/${id}`)
