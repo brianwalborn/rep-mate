@@ -709,7 +709,13 @@ const durationRingOffset = computed(() => {
 const toggleSet = (exerciseId, setIndex) => {
   const exercise = workoutExercises.value.find(ex => ex.id === exerciseId)
   if (exercise) {
+    const wasCompleted = exercise.sets.every(set => set.completed)
     exercise.sets[setIndex].completed = !exercise.sets[setIndex].completed
+
+    // Auto-collapse when the last remaining set is completed.
+    if (!wasCompleted && exercise.sets.length > 0 && exercise.sets.every(set => set.completed)) {
+      collapsedExercises.value.add(exerciseId)
+    }
   }
 }
 
